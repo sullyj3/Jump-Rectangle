@@ -5,7 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-const TIME_STEP: f32 = 1.0 / 60.0;
+const TIME_STEP: f32 = 1.0 / 120.0;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -38,12 +38,6 @@ struct PhysicsObject {
 
 #[derive(Component)]
 struct Wall;
-
-#[derive(Component)]
-enum Collider {
-    Solid,
-    Guy,
-}
 
 struct MyGamepad(Gamepad);
 
@@ -79,35 +73,7 @@ fn gamepad_connections(
     }
 }
 
-fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
-    // Add the game's entities to our world
-
-    // cameras
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
-    // guy
-    commands
-        .spawn_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(0.0, 215.0, 0.0),
-                scale: Vec3::new(20.0, 50.0, 0.0),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: Color::rgb(0.5, 0.5, 1.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Guy { h_speed: 300.})
-        .insert(Collider::Guy)
-        .insert(PhysicsObject {
-            velocity: Vec2::ZERO,
-            is_on_ground: false,
-            was_on_ground: false,
-            old_position: Vec3::ZERO,
-        });
-
+fn add_walls(commands: &mut Commands) {
     // Add walls
     let wall_color = Color::rgb(0.8, 0.8, 0.8);
     let wall_thickness = 10.0;
@@ -127,7 +93,6 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
             },
             ..Default::default()
         })
-        .insert(Collider::Solid)
         .insert(Wall);
     // right
     commands
@@ -143,7 +108,6 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
             },
             ..Default::default()
         })
-        .insert(Collider::Solid)
         .insert(Wall);
     // bottom
     commands
@@ -159,7 +123,6 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
             },
             ..Default::default()
         })
-        .insert(Collider::Solid)
         .insert(Wall);
     // top
     commands
@@ -175,14 +138,44 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
             },
             ..Default::default()
         })
-        .insert(Collider::Solid)
         .insert(Wall);
+}
 
+fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
+    // Add the game's entities to our world
+
+    // cameras
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(UiCameraBundle::default());
+    // guy
+    commands
+        .spawn_bundle(SpriteBundle {
+            transform: Transform {
+                translation: Vec3::new(0.0, 0.0, 0.0),
+                scale: Vec3::new(20.0, 50.0, 0.0),
+                ..Default::default()
+            },
+            sprite: Sprite {
+                color: Color::rgb(0.5, 0.5, 1.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Guy { h_speed: 300.})
+        .insert(PhysicsObject {
+            velocity: Vec2::ZERO,
+            is_on_ground: false,
+            was_on_ground: false,
+            old_position: Vec3::ZERO,
+        });
+
+    add_walls(&mut commands);
 }
 
 fn input_system(
     my_gamepad: Option<Res<MyGamepad>>,
     axes: Res<Axis<GamepadAxis>>,
+    buttons: Res<Input<GamepadButton>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
 ) {
     let (guy, mut physics) = query.single_mut();
@@ -192,24 +185,27 @@ fn input_system(
         None => return,
     };
 
+    // Movement
     let dpad_x = axes
         .get(GamepadAxis(gamepad, GamepadAxisType::DPadX))
         .unwrap();
-
     let lstick_x = axes
         .get(GamepadAxis(gamepad, GamepadAxisType::LeftStickX))
         .unwrap();
-    // let lstick_y = axes
-    //     .get(GamepadAxis(gamepad, GamepadAxisType::LeftStickY))
-    //     .unwrap();
 
     let direction_x = if dpad_x == 0.0 {
         lstick_x
     } else {
         dpad_x
     };
-
     physics.velocity.x = direction_x * guy.h_speed;
+
+    // jump
+    let jump = GamepadButton(gamepad, GamepadButtonType::East);
+    if buttons.just_pressed(jump) && physics.is_on_ground {
+        physics.velocity.y = 750.0;
+        physics.is_on_ground = false;
+    }
 }
 
 fn physics_system( 
@@ -217,7 +213,7 @@ fn physics_system(
     ) {
     for (_entity, mut physics, mut transform) in query.iter_mut() {
         // apply gravity
-        physics.velocity.y -= 5.;
+        physics.velocity.y -= 23.0;
 
         let delta = physics.velocity * TIME_STEP;
         let translation: &mut Vec3 = &mut transform.translation;
@@ -228,32 +224,38 @@ fn physics_system(
 
 fn guy_collision_system(
     mut guy_query: Query<(&Guy, &mut PhysicsObject, &mut Transform), Without<Wall>>,
-    wall_query: Query<(&Wall, &Collider, &Transform), Without<Guy>>,
+    wall_query: Query<(&Wall, &Transform), Without<Guy>>,
 ) {
     let (_, mut guy_physics, mut guy_transform) = guy_query.single_mut();
     let guy_size = guy_transform.scale.truncate();
 
     // check collision with walls
-    for (_, _collider, wall_transform) in wall_query.iter() {
+    for (_, wall_transform) in wall_query.iter() {
         let collision = collide(
-            guy_transform.translation,
-            guy_size,
             wall_transform.translation,
             wall_transform.scale.truncate(),
+            guy_transform.translation,
+            guy_size,
         );
-        if let Some(collision) = collision {
-            info!("guy collided with wall");
-            info!("collision: {:?}", collision);
-
-            match collision {
-                Collision::Left => (),
-                Collision::Right => (),
-                Collision::Top => (),
-                Collision::Bottom => (),
-            }
-
-            guy_physics.velocity = Vec2::ZERO;
-            guy_transform.translation = guy_physics.old_position;
+        match collision {
+            Some(Collision::Left) => {
+                guy_physics.velocity.x = 0.0;
+                guy_transform.translation.x = guy_physics.old_position.x;
+            },
+            Some(Collision::Right) => {
+                guy_physics.velocity.x = 0.0;
+                guy_transform.translation.x = guy_physics.old_position.x;
+            },
+            Some(Collision::Top) => {
+                guy_physics.velocity.y = 0.0;
+                guy_transform.translation.y = guy_physics.old_position.y;
+            },
+            Some(Collision::Bottom) => {
+                guy_physics.velocity.y = 0.0;
+                guy_transform.translation.y = guy_physics.old_position.y;
+                guy_physics.is_on_ground = true;
+            },
+            None => (),
         }
     }
 }

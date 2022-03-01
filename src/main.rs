@@ -1,7 +1,7 @@
 use bevy::{
     core::FixedTimestep,
     prelude::*,
-    sprite::collide_aabb::{collide, Collision},
+    sprite::collide_aabb::{collide, Collision}, utils::HashSet,
     // input::gamepad::*,
 };
 
@@ -34,6 +34,40 @@ struct PhysicsObject {
     old_position: Vec3,
     is_on_ground: bool,
     was_on_ground: bool,
+}
+
+struct Level(Vec<Transform>);
+
+fn make_level_1() -> Level {
+    let wall_thickness = 10.0;
+    let bounds = Vec2::new(900.0, 600.0);
+
+    Level(vec![
+        // left
+        Transform {
+            translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
+            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+            ..Default::default()
+        },
+        // right
+        Transform {
+            translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
+            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+            ..Default::default()
+        },
+        // bottom
+        Transform {
+            translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
+            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        // top
+        Transform {
+            translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
+            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+            ..Default::default()
+        },
+    ])
 }
 
 #[derive(Component)]
@@ -73,72 +107,20 @@ fn gamepad_connections(
     }
 }
 
-fn add_walls(commands: &mut Commands) {
-    // Add walls
+fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
     let wall_color = Color::rgb(0.8, 0.8, 0.8);
-    let wall_thickness = 10.0;
-    let bounds = Vec2::new(900.0, 600.0);
-
-    // left
-    commands
-        .spawn_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
-                scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+    for transform in level {
+        commands
+            .spawn_bundle(SpriteBundle {
+                transform: transform.clone(),
+                sprite: Sprite {
+                    color: wall_color,
+                    ..Default::default()
+                },
                 ..Default::default()
-            },
-            sprite: Sprite {
-                color: wall_color,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Wall);
-    // right
-    commands
-        .spawn_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
-                scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: wall_color,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Wall);
-    // bottom
-    commands
-        .spawn_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
-                scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: wall_color,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Wall);
-    // top
-    commands
-        .spawn_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
-                scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: wall_color,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Wall);
+            })
+            .insert(Wall);
+    }
 }
 
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
@@ -169,7 +151,8 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
             old_position: Vec3::ZERO,
         });
 
-    add_walls(&mut commands);
+    let level1 = make_level_1();
+    add_level_walls(&mut commands, &level1);
 }
 
 fn input_system(
@@ -200,7 +183,7 @@ fn input_system(
     };
     physics.velocity.x = direction_x * guy.h_speed;
 
-    // jump
+    // Jumping
     let jump = GamepadButton(gamepad, GamepadButtonType::East);
     if buttons.just_pressed(jump) && physics.is_on_ground {
         physics.velocity.y = 750.0;

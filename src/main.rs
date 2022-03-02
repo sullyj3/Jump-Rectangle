@@ -1,20 +1,26 @@
 use bevy::{
     core::FixedTimestep,
     prelude::*,
-    sprite::collide_aabb::{collide, Collision}, utils::HashSet,
+    sprite::collide_aabb::{collide, Collision}
     // input::gamepad::*,
 };
 
-const TIME_STEP: f32 = 1.0 / 120.0;
+const TIME_STEP: f32 = 1.0 / 60.0;
+const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .insert_resource(CurrentState(AppState::MainMenu))
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup)
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(input_system.label("input"))
+        )
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(PHYSICS_TIME_STEP as f64))
                 .with_system(physics_system.label("physics").after("input"))
                 .with_system(guy_collision_system.after("physics"))
         )
@@ -129,6 +135,12 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     // cameras
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
+
+}
+
+fn spawn_level(commands: &mut Commands) {
+    info!("spawning level");
+
     // guy
     commands
         .spawn_bundle(SpriteBundle {
@@ -152,7 +164,7 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
         });
 
     let level1 = make_level_1();
-    add_level_walls(&mut commands, &level1);
+    add_level_walls(commands, &level1);
 }
 
 fn input_system(
@@ -160,13 +172,41 @@ fn input_system(
     axes: Res<Axis<GamepadAxis>>,
     buttons: Res<Input<GamepadButton>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
+    mut state: ResMut<CurrentState>,
+    mut commands: Commands,
 ) {
-    let (guy, mut physics) = query.single_mut();
-
     let gamepad = match my_gamepad {
         Some(gp) => gp.0,
         None => return,
     };
+
+    let start = GamepadButton(gamepad, GamepadButtonType::Start);
+    if buttons.just_pressed(start) {
+        state.0 = match state.0 {
+            AppState::MainMenu => {
+                info!("starting game");
+                spawn_level(&mut commands);
+                AppState::InGame
+            },
+            AppState::InGame => {
+                info!("Game paused");
+                AppState::Paused
+            },
+            AppState::Paused => {
+                info!("Game resumed");
+                AppState::InGame
+            },
+        };
+        return;
+    }
+
+    match state.0 {
+        AppState::MainMenu => return,
+        AppState::Paused => return,
+        AppState::InGame => (),
+    }
+
+    let (guy, mut physics) = query.single_mut();
 
     // Movement
     let dpad_x = axes
@@ -185,31 +225,61 @@ fn input_system(
 
     // Jumping
     let jump = GamepadButton(gamepad, GamepadButtonType::East);
-    if buttons.just_pressed(jump) && physics.is_on_ground {
-        physics.velocity.y = 750.0;
-        physics.is_on_ground = false;
+    if buttons.just_pressed(jump)  {
+        if physics.is_on_ground {
+            physics.velocity.y = 750.0;
+            physics.is_on_ground = false;
+        }
     }
+
 }
 
 fn physics_system( 
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
+    state: Res<CurrentState>,
     ) {
+    match state.0 {
+        AppState::MainMenu => return,
+        AppState::Paused => return,
+        AppState::InGame => (),
+    }
+
     for (_entity, mut physics, mut transform) in query.iter_mut() {
         // apply gravity
         physics.velocity.y -= 23.0;
 
-        let delta = physics.velocity * TIME_STEP;
+        let delta = physics.velocity * PHYSICS_TIME_STEP;
         let translation: &mut Vec3 = &mut transform.translation;
         physics.old_position = *translation;
         *translation += Vec3::from((delta, 0.0));
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+enum AppState {
+    MainMenu,
+    InGame,
+    Paused,
+}
+
+struct CurrentState(AppState);
+
 fn guy_collision_system(
     mut guy_query: Query<(&Guy, &mut PhysicsObject, &mut Transform), Without<Wall>>,
     wall_query: Query<(&Wall, &Transform), Without<Guy>>,
+    state: Res<CurrentState>,
 ) {
-    let (_, mut guy_physics, mut guy_transform) = guy_query.single_mut();
+    match state.0 {
+        AppState::MainMenu => return,
+        AppState::Paused => return,
+        AppState::InGame => (),
+    }
+    let gq = guy_query.get_single_mut();
+    if let Err(_) = gq {
+        // not finish spawning level yet
+        return;
+    }
+    let (_, mut guy_physics, mut guy_transform) = gq.unwrap();
     let guy_size = guy_transform.scale.truncate();
 
     // check collision with walls

@@ -39,7 +39,6 @@ struct PhysicsObject {
     velocity: Vec2,
     old_position: Vec3,
     is_on_ground: bool,
-    was_on_ground: bool,
 }
 
 struct Level(Vec<Transform>);
@@ -159,7 +158,6 @@ fn spawn_level(commands: &mut Commands) {
         .insert(PhysicsObject {
             velocity: Vec2::ZERO,
             is_on_ground: false,
-            was_on_ground: false,
             old_position: Vec3::ZERO,
         });
 

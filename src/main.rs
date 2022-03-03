@@ -292,14 +292,13 @@ fn guy_collision_system(
         AppState::Paused => return,
         AppState::InGame => (),
     }
-    let gq = guy_query.get_single_mut();
-    if let Err(_) = gq {
-        // not finish spawning level yet
-        return;
-    }
-    let (mut guy_physics, mut guy_transform) = gq.unwrap();
-    let guy_size = guy_transform.scale.truncate();
 
+    let (mut guy_physics, mut guy_transform) = match guy_query.get_single_mut() {
+        Err(_) => return, // not finished spawning level yet
+        Ok(r) => r,
+    };
+
+    let guy_size = guy_transform.scale.truncate();
     guy_physics.on_ground = None;
 
     for wall_transform in wall_query.iter() {

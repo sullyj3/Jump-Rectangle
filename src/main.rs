@@ -10,7 +10,7 @@ const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(CurrentState(AppState::MainMenu))
+        .insert_resource(AppState::MainMenu)
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup)
         .add_system_set(
@@ -190,7 +190,7 @@ fn input_system(
     axes: Res<Axis<GamepadAxis>>,
     buttons: Res<Input<GamepadButton>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
-    state: Res<CurrentState>,
+    state: Res<AppState>,
     mut commands: Commands,
 ) {
     let gamepad = match my_gamepad {
@@ -200,25 +200,25 @@ fn input_system(
 
     let start = GamepadButton(gamepad, GamepadButtonType::Start);
     if buttons.just_pressed(start) {
-        match state.0 {
+        match *state {
             AppState::MainMenu => {
                 info!("starting game");
                 spawn_level(&mut commands);
-                commands.insert_resource(CurrentState(AppState::InGame));
+                commands.insert_resource(AppState::InGame);
             },
             AppState::InGame => {
                 info!("Game paused");
-                commands.insert_resource(CurrentState(AppState::Paused));
+                commands.insert_resource(AppState::Paused);
             },
             AppState::Paused => {
                 info!("Game resumed");
-                commands.insert_resource(CurrentState(AppState::InGame));
+                commands.insert_resource(AppState::InGame);
             },
         };
         return;
     }
 
-    match state.0 {
+    match *state {
         AppState::MainMenu => return,
         AppState::Paused => return,
         AppState::InGame => (),
@@ -253,9 +253,9 @@ fn input_system(
 
 fn physics_system( 
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
-    state: Res<CurrentState>,
+    state: Res<AppState>,
     ) {
-    match state.0 {
+    match *state {
         AppState::MainMenu => return,
         AppState::Paused => return,
         AppState::InGame => (),
@@ -280,14 +280,12 @@ enum AppState {
     Paused,
 }
 
-struct CurrentState(AppState);
-
 fn guy_collision_system(
     mut guy_query: Query<(&mut PhysicsObject, &mut Transform), (With<Guy>, Without<Wall>)>,
     wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
-    state: Res<CurrentState>,
+    state: Res<AppState>,
 ) {
-    match state.0 {
+    match *state {
         AppState::MainMenu => return,
         AppState::Paused => return,
         AppState::InGame => (),

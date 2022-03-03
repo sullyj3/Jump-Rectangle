@@ -38,7 +38,7 @@ struct Guy {
 struct PhysicsObject {
     velocity: Vec2,
     old_position: Vec3,
-    is_on_ground: bool,
+    on_ground: Option<f32>, // the y coordinate if guy is on ground, else None
 }
 
 struct Level(Vec<Transform>);
@@ -70,6 +70,22 @@ fn make_level_1() -> Level {
         Transform {
             translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
             scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        // platforms
+        Transform {
+            translation: Vec3::new(-280.0, -220.0, 0.0),
+            scale: Vec3::new(50.0, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        Transform {
+            translation: Vec3::new(-200.0, -200.0, 0.0),
+            scale: Vec3::new(50.0, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        Transform {
+            translation: Vec3::new(-120.0, -180.0, 0.0),
+            scale: Vec3::new(50.0, wall_thickness, 1.0),
             ..Default::default()
         },
     ])
@@ -144,7 +160,7 @@ fn spawn_level(commands: &mut Commands) {
     commands
         .spawn_bundle(SpriteBundle {
             transform: Transform {
-                translation: Vec3::new(0.0, 0.0, 0.0),
+                translation: Vec3::new(-300.0, -250.0, 0.0),
                 scale: Vec3::new(20.0, 50.0, 0.0),
                 ..Default::default()
             },
@@ -157,7 +173,7 @@ fn spawn_level(commands: &mut Commands) {
         .insert(Guy { h_speed: 300.})
         .insert(PhysicsObject {
             velocity: Vec2::ZERO,
-            is_on_ground: false,
+            on_ground: None,
             old_position: Vec3::ZERO,
         });
 
@@ -224,12 +240,11 @@ fn input_system(
     // Jumping
     let jump = GamepadButton(gamepad, GamepadButtonType::East);
     if buttons.just_pressed(jump)  {
-        if physics.is_on_ground {
+        if let Some(_) = physics.on_ground {
             physics.velocity.y = 750.0;
-            physics.is_on_ground = false;
+            physics.on_ground = None;
         }
     }
-
 }
 
 fn physics_system( 
@@ -246,6 +261,7 @@ fn physics_system(
         // apply gravity
         physics.velocity.y -= 23.0;
 
+        // move
         let delta = physics.velocity * PHYSICS_TIME_STEP;
         let translation: &mut Vec3 = &mut transform.translation;
         physics.old_position = *translation;
@@ -282,9 +298,10 @@ fn guy_collision_system(
 
     // check collision with walls
     for (_, wall_transform) in wall_query.iter() {
+        let wall_size = wall_transform.scale.truncate();
         let collision = collide(
             wall_transform.translation,
-            wall_transform.scale.truncate(),
+            wall_size,
             guy_transform.translation,
             guy_size,
         );
@@ -303,8 +320,11 @@ fn guy_collision_system(
             },
             Some(Collision::Bottom) => {
                 guy_physics.velocity.y = 0.0;
-                guy_transform.translation.y = guy_physics.old_position.y;
-                guy_physics.is_on_ground = true;
+                // info!("before: {}", guy_transform.translation.y);
+                guy_transform.translation.y = 
+                    wall_transform.translation.y + (wall_size.y / 2.) + (guy_size.y / 2.);
+                // info!("after: {}", guy_transform.translation.y);
+                guy_physics.on_ground = Some(guy_transform.translation.y);
             },
             None => (),
         }

@@ -34,6 +34,7 @@ struct Guy {
     h_speed: f32,
 }
 
+
 #[derive(Component)]
 struct PhysicsObject {
     velocity: Vec2,
@@ -153,15 +154,18 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
 
 }
 
+
 fn spawn_level(commands: &mut Commands) {
     info!("spawning level");
+
+    let guy_size: Vec3 = Vec3::new(20.0, 50.0, 0.0);
 
     // guy
     commands
         .spawn_bundle(SpriteBundle {
             transform: Transform {
                 translation: Vec3::new(-300.0, -250.0, 0.0),
-                scale: Vec3::new(20.0, 50.0, 0.0),
+                scale: guy_size,
                 ..Default::default()
             },
             sprite: Sprite {
@@ -296,7 +300,8 @@ fn guy_collision_system(
     let (_, mut guy_physics, mut guy_transform) = gq.unwrap();
     let guy_size = guy_transform.scale.truncate();
 
-    // check collision with walls
+    guy_physics.on_ground = None;
+
     for (_, wall_transform) in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
         let collision = collide(
@@ -308,22 +313,23 @@ fn guy_collision_system(
         match collision {
             Some(Collision::Left) => {
                 guy_physics.velocity.x = 0.0;
-                guy_transform.translation.x = guy_physics.old_position.x;
+                guy_transform.translation.x =
+                    wall_transform.translation.x + (wall_size.x / 2.) + (guy_size.x / 2.);
             },
             Some(Collision::Right) => {
                 guy_physics.velocity.x = 0.0;
-                guy_transform.translation.x = guy_physics.old_position.x;
+                guy_transform.translation.x =
+                    wall_transform.translation.x - (wall_size.x / 2.) - (guy_size.x / 2.);
             },
             Some(Collision::Top) => {
                 guy_physics.velocity.y = 0.0;
-                guy_transform.translation.y = guy_physics.old_position.y;
+                guy_transform.translation.y = 
+                    wall_transform.translation.y - (wall_size.y / 2.) - (guy_size.y / 2.);
             },
             Some(Collision::Bottom) => {
                 guy_physics.velocity.y = 0.0;
-                // info!("before: {}", guy_transform.translation.y);
                 guy_transform.translation.y = 
                     wall_transform.translation.y + (wall_size.y / 2.) + (guy_size.y / 2.);
-                // info!("after: {}", guy_transform.translation.y);
                 guy_physics.on_ground = Some(guy_transform.translation.y);
             },
             None => (),

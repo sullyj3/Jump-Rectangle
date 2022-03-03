@@ -190,7 +190,7 @@ fn input_system(
     axes: Res<Axis<GamepadAxis>>,
     buttons: Res<Input<GamepadButton>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
-    mut state: ResMut<CurrentState>,
+    state: Res<CurrentState>,
     mut commands: Commands,
 ) {
     let gamepad = match my_gamepad {
@@ -200,19 +200,19 @@ fn input_system(
 
     let start = GamepadButton(gamepad, GamepadButtonType::Start);
     if buttons.just_pressed(start) {
-        state.0 = match state.0 {
+        match state.0 {
             AppState::MainMenu => {
                 info!("starting game");
                 spawn_level(&mut commands);
-                AppState::InGame
+                commands.insert_resource(CurrentState(AppState::InGame));
             },
             AppState::InGame => {
                 info!("Game paused");
-                AppState::Paused
+                commands.insert_resource(CurrentState(AppState::Paused));
             },
             AppState::Paused => {
                 info!("Game resumed");
-                AppState::InGame
+                commands.insert_resource(CurrentState(AppState::InGame));
             },
         };
         return;
@@ -293,10 +293,7 @@ fn guy_collision_system(
         AppState::InGame => (),
     }
 
-    let (mut guy_physics, mut guy_transform) = match guy_query.get_single_mut() {
-        Err(_) => return, // not finished spawning level yet
-        Ok(r) => r,
-    };
+    let (mut guy_physics, mut guy_transform) = guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
     guy_physics.on_ground = None;

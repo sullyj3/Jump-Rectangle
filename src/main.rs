@@ -269,7 +269,7 @@ fn physics_system(
         let delta = physics.velocity * PHYSICS_TIME_STEP;
         let translation: &mut Vec3 = &mut transform.translation;
         physics.old_position = *translation;
-        *translation += Vec3::from((delta, 0.0));
+        *translation += delta.extend(0.0);
     }
 }
 
@@ -311,22 +311,22 @@ fn guy_collision_system(
         );
         match collision {
             Some(Collision::Left) => {
-                guy_physics.velocity.x = 0.0;
+                guy_physics.velocity.x = guy_physics.velocity.x.min(0.0);
                 guy_transform.translation.x =
                     wall_transform.translation.x + (wall_size.x / 2.) + (guy_size.x / 2.);
             },
             Some(Collision::Right) => {
-                guy_physics.velocity.x = 0.0;
+                guy_physics.velocity.x = guy_physics.velocity.x.max(0.0);
                 guy_transform.translation.x =
                     wall_transform.translation.x - (wall_size.x / 2.) - (guy_size.x / 2.);
             },
             Some(Collision::Top) => {
-                guy_physics.velocity.y = 0.0;
+                guy_physics.velocity.y = guy_physics.velocity.y.min(0.0);
                 guy_transform.translation.y = 
                     wall_transform.translation.y - (wall_size.y / 2.) - (guy_size.y / 2.);
             },
             Some(Collision::Bottom) => {
-                guy_physics.velocity.y = 0.0;
+                guy_physics.velocity.y = guy_physics.velocity.y.max(0.0);
                 guy_transform.translation.y = 
                     wall_transform.translation.y + (wall_size.y / 2.) + (guy_size.y / 2.);
                 guy_physics.on_ground = Some(guy_transform.translation.y);

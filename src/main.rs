@@ -283,8 +283,8 @@ enum AppState {
 struct CurrentState(AppState);
 
 fn guy_collision_system(
-    mut guy_query: Query<(&Guy, &mut PhysicsObject, &mut Transform), Without<Wall>>,
-    wall_query: Query<(&Wall, &Transform), Without<Guy>>,
+    mut guy_query: Query<(&mut PhysicsObject, &mut Transform), (With<Guy>, Without<Wall>)>,
+    wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
     state: Res<CurrentState>,
 ) {
     match state.0 {
@@ -297,12 +297,12 @@ fn guy_collision_system(
         // not finish spawning level yet
         return;
     }
-    let (_, mut guy_physics, mut guy_transform) = gq.unwrap();
+    let (mut guy_physics, mut guy_transform) = gq.unwrap();
     let guy_size = guy_transform.scale.truncate();
 
     guy_physics.on_ground = None;
 
-    for (_, wall_transform) in wall_query.iter() {
+    for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
         let collision = collide(
             wall_transform.translation,

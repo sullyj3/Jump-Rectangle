@@ -1,7 +1,8 @@
 use bevy::{
     core::FixedTimestep,
     prelude::*,
-    sprite::collide_aabb::{collide, Collision}
+    sprite::collide_aabb::{collide, Collision},
+    // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
 
@@ -185,19 +186,16 @@ fn spawn_level(commands: &mut Commands) {
     add_level_walls(commands, &level1);
 }
 
-fn input_system(
-    my_gamepad: Option<Res<MyGamepad>>,
+// todo separate functions for gamepad and keyboard is wack, need to refactor to translate both
+// into some sort of common data type
+fn gamepad_input(
+    gamepad: Gamepad,
     axes: Res<Axis<GamepadAxis>>,
     buttons: Res<Input<GamepadButton>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
     state: Res<AppState>,
     mut commands: Commands,
 ) {
-    let gamepad = match my_gamepad {
-        Some(gp) => gp.0,
-        None => return,
-    };
-
     let start = GamepadButton(gamepad, GamepadButtonType::Start);
     if buttons.just_pressed(start) {
         match *state {
@@ -245,6 +243,95 @@ fn input_system(
     let jump1 = GamepadButton(gamepad, GamepadButtonType::East);
     let jump2 = GamepadButton(gamepad, GamepadButtonType::South);
     if buttons.any_pressed([jump1, jump2])  {
+        if let Some(_) = physics.on_ground {
+            physics.velocity.y = 750.0;
+            physics.on_ground = None;
+        }
+    }
+}
+
+// struct GameInput {
+//     x_axis: f32,
+//     start: bool,
+//     jump: bool,
+// }
+
+fn input_system(
+    my_gamepad: Option<Res<MyGamepad>>,
+    axes: Res<Axis<GamepadAxis>>,
+    buttons: Res<Input<GamepadButton>>,
+    keyboard: Res<Input<KeyCode>>,
+    query: Query<(&Guy, &mut PhysicsObject)>,
+    state: Res<AppState>,
+    commands: Commands,
+) {
+    match my_gamepad {
+        Some(gp) => gamepad_input(gp.0, axes, buttons, query, state, commands),
+        None => keyboard_input(keyboard, query, state, commands),
+    }
+}
+
+fn keyboard_input(
+    keyboard: Res<Input<KeyCode>>,
+    mut query: Query<(&Guy, &mut PhysicsObject)>,
+    state: Res<AppState>,
+    mut commands: Commands
+) {
+    if keyboard.just_pressed(KeyCode::Return) {
+        match *state {
+            AppState::MainMenu => {
+                info!("starting game");
+                spawn_level(&mut commands);
+                commands.insert_resource(AppState::InGame);
+            },
+            AppState::InGame => {
+                info!("Game paused");
+                commands.insert_resource(AppState::Paused);
+            },
+            AppState::Paused => {
+                info!("Game resumed");
+                commands.insert_resource(AppState::InGame);
+            },
+        };
+        return;
+    }
+
+    match *state {
+        AppState::MainMenu => return,
+        AppState::Paused => return,
+        AppState::InGame => (),
+    }
+
+    let (guy, mut physics) = query.single_mut();
+
+    // Movement
+    // let dpad_x = axes
+    //     .get(GamepadAxis(gamepad, GamepadAxisType::DPadX))
+    //     .unwrap();
+    // let lstick_x = axes
+    //     .get(GamepadAxis(gamepad, GamepadAxisType::LeftStickX))
+    //     .unwrap();
+
+    // let direction_x = if dpad_x == 0.0 {
+    //     lstick_x
+    // } else {
+    //     dpad_x
+    // };
+
+    // todo improve this logic, currently right just overrides left. should instead be last
+    // pressed.
+    let mut direction_x = 0.0;
+    if keyboard.pressed(KeyCode::Left) {
+        direction_x = -1.0;
+    }
+    if keyboard.pressed(KeyCode::Right) {
+        direction_x = 1.0;
+    }
+
+    physics.velocity.x = direction_x * guy.h_speed;
+
+    // Jumping
+    if keyboard.pressed(KeyCode::Space)  {
         if let Some(_) = physics.on_ground {
             physics.velocity.y = 750.0;
             physics.on_ground = None;

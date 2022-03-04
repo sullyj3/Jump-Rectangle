@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::stuff::{
+use crate::platformer::{
     PhysicsObject,
     Guy, AppState, spawn_level,
 };

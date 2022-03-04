@@ -1,4 +1,4 @@
-mod stuff;
+mod platformer;
 mod input;
 
 use bevy::{
@@ -7,7 +7,7 @@ use bevy::{
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
-use stuff::{
+use platformer::{
     AppState,
     setup,
     physics_system,

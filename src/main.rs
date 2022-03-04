@@ -4,16 +4,14 @@ mod input;
 use bevy::{
     core::FixedTimestep,
     prelude::*,
-    // input::keyboard::KeyboardInput,
-    // input::gamepad::*,
 };
 use platformer::{
+    TIME_STEP,
+    PHYSICS_TIME_STEP,
     AppState,
     setup,
     physics_system,
     guy_collision_system,
-    TIME_STEP,
-    PHYSICS_TIME_STEP,
 };
 use input::{
     input_system,

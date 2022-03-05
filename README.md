@@ -5,7 +5,7 @@ A platformer for the purposes of learning the Bevy game engine
 ## Current state
 I'm currently unsatisfied with using both `FixedTimestep` and `Res<Time>`.
   
-### FixedTimestep 
+### `FixedTimestep`
 `FixedTimestep` is something called a *run criteria* - a piece of metadata that is attached to a Bevy ECS *system* that determines when that system runs, or, in other words, whether it runs on a given iteration of the main loop. This is great in theory. 
 
 The issue is that I also want to be able to use a bevy feature called `State`. Bevy states are also ways of determining whether a system should run. For example, if you are in a `Paused` state, a physics system should not run. The problem is that Bevy States are implemented in terms of run criteria. This means if you only want a system to run in a given state, but also want it to run at a `FixedTimestep`, the latter directive clobbers the former, and it just runs at the fixed timestep with no regard to that current state. This is annoying.
@@ -30,7 +30,7 @@ fn my system(
 
 This is gross and I hate it.
 
-### Res<Time>
+### `Res<Time>`
 
 An alternative to using FixedTimestep to schedule systems is to use a bevy Time Resource. Each iteration, you ask the resource how much time has elapsed since the last iteration, and use that *delta* to determine how much time to simulate.
   

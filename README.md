@@ -32,7 +32,7 @@ This is gross and I hate it.
 
 ### `Res<Time>`
 
-An alternative to using FixedTimestep to schedule systems is to use a bevy Time Resource. Each iteration, you ask the resource how much time has elapsed since the last iteration, and use that *delta* to determine how much time to simulate.
+An alternative to using `FixedTimestep` to schedule systems is to use a bevy `Time` Resource. Each iteration, you ask the resource how much time has elapsed since the last iteration, and use that *delta* to determine how much time to simulate.
   
 This is not quite a drop in replacement, since it changes the behavior - we've gone from *fixed time* to *delta time*. Delta time has advantages and disadvantages compared to fixed time, which have been well studied. Notably, delta time can lead to physics glitches - when the time delta gets too high due to slowdowns, the physics won't notice collisions of fast moving objects. For example, on one frame a bullet might be on the left of a wall, a large delta of time passes, and on the next frame it's on the right. At no point in time do they intersect, causing the bullet to clip through the wall.
 

@@ -1,6 +1,6 @@
 # Jump-Rectangle
 
-A platformer for the purposes of learning the Bevy game engine
+A platformer for the purpose of learning the Bevy game engine
 
 ## Current state
 I'm currently unsatisfied with using both `FixedTimestep` and `Res<Time>`.

@@ -46,7 +46,7 @@ This is clearly pretty unsustainable - ultimately every system that needs to kno
   
 ### Stageless scheduling and a States rework?
   
-So currently I'm unhappy with all my options. However, delving into the depths of Bevy developer discussions on github and discourse, it looks as though the system scheduling system is going to get a rework at some point. Importantly, it will include a redesign of `State`s, making them no longer run criteria based, and therefore no longer conflicting with `FixedTimestep`. See the [relevant rfc](https://github.com/bevyengine/rfcs/pull/45)
+So currently I'm unhappy with all my options. However, delving into the depths of Bevy developer discussions on github and discord, it looks as though system scheduling is going to get a rework at some point. Relevantly, it will include a redesign of `State`s, making them no longer run criteria based, and therefore no longer conflicting with `FixedTimestep`. See the [relevant rfc](https://github.com/bevyengine/rfcs/pull/45)
   
 So I guess I'll just wait until that drops.
   

@@ -28,7 +28,7 @@ fn my system(
 }
 ```
 
-This is gross and I hate it.
+If I forget this, it causes crashes at runtime when systems try to access data that hasn't yet been initialized (eg it's trying to run gameplay logic when we're in the main menu). This is gross and I hate it.
 
 ### `Res<Time>`
 

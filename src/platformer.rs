@@ -212,3 +212,20 @@ pub fn guy_collision_system(
     }
 }
 
+pub fn move_camera(
+    mut camera: Query<&mut Transform, (With<Camera>, Without<Guy>)>,
+    player: Query<&Transform, (With<Guy>, Without<Camera>)>,
+    state: Res<AppState>,
+) {
+    match *state {
+        AppState::MainMenu => return,
+        AppState::Paused => return,
+        AppState::InGame => (),
+    }
+    let guy_pos: Vec3 = player.single().translation;
+
+    for mut transform in camera.iter_mut() {
+
+        transform.translation = guy_pos;
+    }  
+}

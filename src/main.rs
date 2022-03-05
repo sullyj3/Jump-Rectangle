@@ -12,6 +12,7 @@ use platformer::{
     setup,
     physics_system,
     guy_collision_system,
+    move_camera,
 };
 use input::{
     input_system,
@@ -33,9 +34,10 @@ fn main() {
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(PHYSICS_TIME_STEP as f64))
                 .with_system(physics_system.label("physics").after("input"))
-                .with_system(guy_collision_system.after("physics"))
+                .with_system(guy_collision_system.label("guy_collision").after("physics"))
         )
         .add_system(gamepad_connections)
+        .add_system(move_camera.after("guy_collision"))
         .add_system(bevy::input::system::exit_on_esc_system)
         .run();
 }

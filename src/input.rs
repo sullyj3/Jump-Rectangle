@@ -95,7 +95,7 @@ fn gamepad_input(
     // Jumping
     let jump1 = GamepadButton(gamepad, GamepadButtonType::East);
     let jump2 = GamepadButton(gamepad, GamepadButtonType::South);
-    if buttons.any_pressed([jump1, jump2])  {
+    if buttons.any_just_pressed([jump1, jump2])  {
         if let Some(_) = physics.on_ground {
             physics.velocity.y = 750.0;
             physics.on_ground = None;

@@ -5,9 +5,6 @@ use bevy::{
     // input::gamepad::*,
 };
 
-pub const TIME_STEP: f32 = 1.0 / 60.0;
-pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
-
 #[derive(Component)]
 pub struct Guy {
     pub h_speed: f32,
@@ -131,27 +128,63 @@ pub fn spawn_level(commands: &mut Commands) {
     add_level_walls(commands, &level1);
 }
 
+const PHYSICS_TIME_STEP: f32 = 1./240.;
+
+pub struct AverageDt(pub Option<f32>);
+
+pub struct TimeToProcess(pub f32);
+
+pub struct PrintAvgDtCountdown(pub Timer);
+
+pub fn print_avg_dt(
+    time: Res<Time>,
+    avg_dt: Res<AverageDt>,
+    mut timer: ResMut<PrintAvgDtCountdown>,
+) {
+    let delta = time.delta();
+    if timer.0.tick(delta).just_finished() {
+        if let AverageDt(Some(avg)) = *avg_dt {
+            info!("Average dt: {}", avg);
+        }
+    }
+}
 
 pub fn physics_system( 
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
     state: Res<AppState>,
+    time: Res<Time>,
+    mut avg_dt: ResMut<AverageDt>, // todo: LocalMut?
+    mut time_to_process: ResMut<TimeToProcess>, // todo: LocalMut?
 ) {
+    // todo: get rid of this BS
     match *state {
         AppState::MainMenu => return,
         AppState::Paused => return,
         AppState::InGame => (),
     }
 
-    for (_entity, mut physics, mut transform) in query.iter_mut() {
-        // apply gravity
-        physics.velocity.y -= 23.0;
+    let mut dt = time.delta_seconds() + time_to_process.0;
+    *avg_dt = match *avg_dt {
+        AverageDt(None) => AverageDt(Some(dt)),
+        AverageDt(Some(old_avg)) => AverageDt(Some((dt + old_avg) / 2.)),
+    };
 
-        // move
-        let delta = physics.velocity * PHYSICS_TIME_STEP;
-        let translation: &mut Vec3 = &mut transform.translation;
-        physics.old_position = *translation;
-        *translation += delta.extend(0.0);
+
+    while dt > PHYSICS_TIME_STEP {
+        for (_entity, mut physics, mut transform) in query.iter_mut() {
+            // apply gravity
+            physics.velocity.y -= 2760.0 * PHYSICS_TIME_STEP;
+
+            // move
+            let dx = physics.velocity * PHYSICS_TIME_STEP;
+            let x: &mut Vec3 = &mut transform.translation;
+            physics.old_position = *x;
+            *x += dx.extend(0.0);
+        }
+        dt -= PHYSICS_TIME_STEP;
     }
+
+    time_to_process.0 = dt;
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

@@ -207,6 +207,9 @@ pub fn guy_collision_system(
                     wall_transform.translation.y + (wall_size.y / 2.) + (guy_size.y / 2.);
                 guy_physics.on_ground = Some(guy_transform.translation.y);
             },
+            Some(Collision::Inside) => {
+                // Not sure what to do here
+            }
             None => (),
         }
     }

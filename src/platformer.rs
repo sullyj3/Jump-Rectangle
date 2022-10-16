@@ -100,9 +100,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Pause message
     commands
         .spawn_bundle(
-            // Create a TextBundle that has a Text with a single section.
             TextBundle::from_section(
-                // Accepts a `String` or any type that converts into a `String`, such as `&str`
                 "PAUSED",
                 TextStyle {
                     font: asset_server

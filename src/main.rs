@@ -2,7 +2,7 @@ mod input;
 mod platformer;
 
 use bevy::{prelude::*, time::FixedTimestep};
-use input::{gamepad_connections, input_system, make_input_map, Action};
+use input::{input_system, make_input_map, Action};
 use leafwing_input_manager::prelude::*;
 use platformer::{
     guy_collision_system, move_camera, physics_system, setup, AppState,
@@ -31,7 +31,6 @@ fn main() {
                     guy_collision_system.label("guy_collision").after("physics"),
                 ),
         )
-        .add_system(gamepad_connections)
         .add_system(move_camera.after("guy_collision"))
         .add_system(bevy::window::close_on_esc)
         .run();

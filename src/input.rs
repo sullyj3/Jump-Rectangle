@@ -3,8 +3,6 @@ use leafwing_input_manager::prelude::*;
 
 use crate::platformer::{spawn_level, AppState, Guy, PhysicsObject, PauseMessage};
 
-pub struct MyGamepad(Gamepad);
-
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Action {
     Move,
@@ -13,32 +11,6 @@ pub enum Action {
     Debug,
 }
 
-pub fn gamepad_connections(
-    mut commands: Commands,
-    my_gamepad: Option<Res<MyGamepad>>,
-    mut gamepad_evr: EventReader<GamepadEvent>,
-) {
-    for GamepadEvent {
-        gamepad,
-        event_type,
-    } in gamepad_evr.iter()
-    {
-        match (event_type, my_gamepad.as_deref()) {
-            (GamepadEventType::Connected, None) => {
-                commands.insert_resource(MyGamepad(*gamepad));
-            }
-            (GamepadEventType::Disconnected, Some(MyGamepad(old_id)))
-                if old_id == gamepad =>
-            {
-                commands.remove_resource::<MyGamepad>();
-            }
-            // other events are irrelevant
-            _ => {}
-        }
-    }
-}
-
-// todo: try input_map.insert_multiple([ <pairs> ])
 pub fn make_input_map() -> InputMap<Action> {
     let mut input_map = InputMap::default();
     // keyboard

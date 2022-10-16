@@ -5,7 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-pub const TIME_STEP: f32 = 1.0 / 60.0;
+pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 
 #[derive(Component)]

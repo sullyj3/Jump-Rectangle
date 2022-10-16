@@ -1781,6 +1781,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4217ad341ebadf8d8e724e264f13e593e0648f5b3e94b3896a5df283be015ecc"
 
 [[package]]
+name = "iyes_loopless"
+version = "0.7.1"
+source = "git+https://github.com/IyesGames/iyes_loopless.git#fd7c08807ba1200ed117eb7f143a70633be5f440"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_time",
+ "bevy_utils",
+]
+
+[[package]]
 name = "jni"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2447,6 +2458,7 @@ name = "platformer"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "iyes_loopless",
  "leafwing-input-manager",
 ]
 

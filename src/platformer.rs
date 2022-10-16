@@ -1,9 +1,11 @@
+use crate::input::{Action, make_input_map};
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
+use leafwing_input_manager::prelude::*;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
@@ -12,7 +14,6 @@ pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 pub struct Guy {
     pub h_speed: f32,
 }
-
 
 #[derive(Component)]
 pub struct PhysicsObject {
@@ -74,7 +75,6 @@ pub fn make_level_1() -> Level {
 #[derive(Component)]
 pub struct Wall;
 
-
 fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
     let wall_color = Color::rgb(0.8, 0.8, 0.8);
     for transform in level {
@@ -96,9 +96,7 @@ pub fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
 
     // cameras
     commands.spawn_bundle(Camera2dBundle::default());
-
 }
-
 
 pub fn spawn_level(commands: &mut Commands) {
     info!("spawning level");
@@ -107,7 +105,9 @@ pub fn spawn_level(commands: &mut Commands) {
 
     // guy
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn()
+        .insert(Guy { h_speed: 300. })
+        .insert_bundle(SpriteBundle {
             transform: Transform {
                 translation: Vec3::new(-300.0, -250.0, 0.0),
                 scale: guy_size,
@@ -119,7 +119,6 @@ pub fn spawn_level(commands: &mut Commands) {
             },
             ..Default::default()
         })
-        .insert(Guy { h_speed: 300.})
         .insert(PhysicsObject {
             velocity: Vec2::ZERO,
             on_ground: None,
@@ -130,8 +129,7 @@ pub fn spawn_level(commands: &mut Commands) {
     add_level_walls(commands, &level1);
 }
 
-
-pub fn physics_system( 
+pub fn physics_system(
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
     state: Res<AppState>,
 ) {
@@ -161,7 +159,10 @@ pub enum AppState {
 }
 
 pub fn guy_collision_system(
-    mut guy_query: Query<(&mut PhysicsObject, &mut Transform), (With<Guy>, Without<Wall>)>,
+    mut guy_query: Query<
+        (&mut PhysicsObject, &mut Transform),
+        (With<Guy>, Without<Wall>),
+    >,
     wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
     state: Res<AppState>,
 ) {
@@ -187,25 +188,29 @@ pub fn guy_collision_system(
         match collision {
             Some(Collision::Left) => {
                 guy_physics.velocity.x = guy_physics.velocity.x.min(0.0);
-                guy_transform.translation.x =
-                    wall_transform.translation.x + (wall_size.x / 2.) + (guy_size.x / 2.);
-            },
+                guy_transform.translation.x = wall_transform.translation.x
+                    + (wall_size.x / 2.)
+                    + (guy_size.x / 2.);
+            }
             Some(Collision::Right) => {
                 guy_physics.velocity.x = guy_physics.velocity.x.max(0.0);
-                guy_transform.translation.x =
-                    wall_transform.translation.x - (wall_size.x / 2.) - (guy_size.x / 2.);
-            },
+                guy_transform.translation.x = wall_transform.translation.x
+                    - (wall_size.x / 2.)
+                    - (guy_size.x / 2.);
+            }
             Some(Collision::Top) => {
                 guy_physics.velocity.y = guy_physics.velocity.y.min(0.0);
-                guy_transform.translation.y = 
-                    wall_transform.translation.y - (wall_size.y / 2.) - (guy_size.y / 2.);
-            },
+                guy_transform.translation.y = wall_transform.translation.y
+                    - (wall_size.y / 2.)
+                    - (guy_size.y / 2.);
+            }
             Some(Collision::Bottom) => {
                 guy_physics.velocity.y = guy_physics.velocity.y.max(0.0);
-                guy_transform.translation.y = 
-                    wall_transform.translation.y + (wall_size.y / 2.) + (guy_size.y / 2.);
+                guy_transform.translation.y = wall_transform.translation.y
+                    + (wall_size.y / 2.)
+                    + (guy_size.y / 2.);
                 guy_physics.on_ground = Some(guy_transform.translation.y);
-            },
+            }
             Some(Collision::Inside) => {
                 // Not sure what to do here
             }
@@ -227,7 +232,6 @@ pub fn move_camera(
     let guy_pos: Vec3 = player.single().translation;
 
     for mut transform in camera.iter_mut() {
-
         transform.translation = guy_pos;
-    }  
+    }
 }

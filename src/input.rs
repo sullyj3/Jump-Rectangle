@@ -12,23 +12,23 @@ pub fn gamepad_connections(
     my_gamepad: Option<Res<MyGamepad>>,
     mut gamepad_evr: EventReader<GamepadEvent>,
 ) {
-    for GamepadEvent(id, kind) in gamepad_evr.iter() {
-        match kind {
+    for GamepadEvent{gamepad, event_type} in gamepad_evr.iter() {
+        match event_type {
             GamepadEventType::Connected => {
-                println!("New gamepad connected with ID: {:?}", id);
+                println!("New gamepad connected with ID: {:?}", gamepad);
 
                 // if we don't have any gamepad yet, use this one
                 if my_gamepad.is_none() {
-                    commands.insert_resource(MyGamepad(*id));
+                    commands.insert_resource(MyGamepad(*gamepad));
                 }
             }
             GamepadEventType::Disconnected => {
-                println!("Lost gamepad connection with ID: {:?}", id);
+                println!("Lost gamepad connection with ID: {:?}", gamepad);
 
                 // if it's the one we previously associated with the player,
                 // disassociate it:
                 if let Some(MyGamepad(old_id)) = my_gamepad.as_deref() {
-                    if old_id == id {
+                    if old_id == gamepad {
                         commands.remove_resource::<MyGamepad>();
                     }
                 }
@@ -49,7 +49,7 @@ fn gamepad_input(
     state: Res<AppState>,
     mut commands: Commands,
 ) {
-    let start = GamepadButton(gamepad, GamepadButtonType::Start);
+    let start = GamepadButton{ gamepad, button_type: GamepadButtonType::Start };
     if buttons.just_pressed(start) {
         match *state {
             AppState::MainMenu => {
@@ -78,23 +78,27 @@ fn gamepad_input(
     let (guy, mut physics) = query.single_mut();
 
     // Movement
-    let dpad_x = axes
-        .get(GamepadAxis(gamepad, GamepadAxisType::DPadX))
-        .unwrap();
+    // TODO: dpad no longer an axis
+    //
+    // let dpad_x = axes
+    //     .get(GamepadAxis{ gamepad, axis_type: GamepadAxisType::DPadX })
+    //     .unwrap();
     let lstick_x = axes
-        .get(GamepadAxis(gamepad, GamepadAxisType::LeftStickX))
+        .get(GamepadAxis{ gamepad, axis_type: GamepadAxisType::LeftStickX })
         .unwrap();
 
-    let direction_x = if dpad_x == 0.0 {
-        lstick_x
-    } else {
-        dpad_x
-    };
+    // TODO: dpad no longer an axis
+    // let direction_x = if dpad_x == 0.0 {
+    //     lstick_x
+    // } else {
+    //     dpad_x
+    // };
+    let direction_x = lstick_x;
     physics.velocity.x = direction_x * guy.h_speed;
 
     // Jumping
-    let jump1 = GamepadButton(gamepad, GamepadButtonType::East);
-    let jump2 = GamepadButton(gamepad, GamepadButtonType::South);
+    let jump1 = GamepadButton{ gamepad, button_type: GamepadButtonType::East };
+    let jump2 = GamepadButton{ gamepad, button_type: GamepadButtonType::South };
     if buttons.any_just_pressed([jump1, jump2])  {
         if let Some(_) = physics.on_ground {
             physics.velocity.y = 750.0;

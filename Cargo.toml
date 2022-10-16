@@ -14,4 +14,5 @@ opt-level = 3
 
 [dependencies]
 # remember to disable "dynamic" feature before release
-bevy = { version = "0.7.0", features = ["dynamic"] }
+bevy = { version = "0.8", features = ["dynamic"] }
+# bevy = "0.8"

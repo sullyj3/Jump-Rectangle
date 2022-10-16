@@ -2,7 +2,7 @@ mod platformer;
 mod input;
 
 use bevy::{
-    core::FixedTimestep,
+    time::FixedTimestep,
     prelude::*,
 };
 use platformer::{
@@ -38,7 +38,7 @@ fn main() {
         )
         .add_system(gamepad_connections)
         .add_system(move_camera.after("guy_collision"))
-        .add_system(bevy::input::system::exit_on_esc_system)
+        .add_system(bevy::window::close_on_esc)
         .run();
 }
 

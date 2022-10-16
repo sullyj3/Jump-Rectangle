@@ -95,8 +95,7 @@ pub fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     // Add the game's entities to our world
 
     // cameras
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
+    commands.spawn_bundle(Camera2dBundle::default());
 
 }
 

@@ -1,11 +1,9 @@
-use crate::input::{Action, make_input_map};
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
-use leafwing_input_manager::prelude::*;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;

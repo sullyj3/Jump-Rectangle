@@ -89,11 +89,34 @@ fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
     }
 }
 
-pub fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
+#[derive(Component, PartialEq, Eq)]
+pub struct PauseMessage;
+
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Add the game's entities to our world
 
     // cameras
     commands.spawn_bundle(Camera2dBundle::default());
+    // Pause message
+    commands
+        .spawn_bundle(
+            // Create a TextBundle that has a Text with a single section.
+            TextBundle::from_section(
+                // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                "PAUSED",
+                TextStyle {
+                    font: asset_server
+                        .load("fonts/AL Ubuntu Mono Nerd Font Complete.ttf"),
+                    font_size: 100.0,
+                    color: Color::BLACK,
+                },
+            ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::CENTER)
+            // Set the style of the TextBundle itself.
+            .with_style(default()),
+        )
+        .insert(Visibility { is_visible: false })
+        .insert(PauseMessage);
 }
 
 pub fn spawn_level(commands: &mut Commands) {

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::platformer::{spawn_level, AppState, Guy, PhysicsObject};
+use crate::platformer::{spawn_level, AppState, Guy, PhysicsObject, PauseMessage};
 
 pub struct MyGamepad(Gamepad);
 
@@ -63,10 +63,12 @@ pub fn make_input_map() -> InputMap<Action> {
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
+    mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
     state: Res<AppState>,
     mut commands: Commands,
 ) {
     if action_state.just_pressed(Action::Start) {
+        let mut pm_visibility = pause_message_vis.single_mut();
         match *state {
             AppState::MainMenu => {
                 info!("starting game");
@@ -76,10 +78,12 @@ pub fn input_system(
             AppState::InGame => {
                 info!("Game paused");
                 commands.insert_resource(AppState::Paused);
+                pm_visibility.is_visible = true;
             }
             AppState::Paused => {
                 info!("Game resumed");
                 commands.insert_resource(AppState::InGame);
+                pm_visibility.is_visible = false;
             }
         };
         return;

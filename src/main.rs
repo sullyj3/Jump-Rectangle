@@ -2,7 +2,7 @@ mod input;
 mod platformer;
 
 use bevy::{prelude::*, time::FixedTimestep};
-use input::{gamepad_connections, input_system, Action, make_input_map};
+use input::{gamepad_connections, input_system, make_input_map, Action};
 use leafwing_input_manager::prelude::*;
 use platformer::{
     guy_collision_system, move_camera, physics_system, setup, AppState,

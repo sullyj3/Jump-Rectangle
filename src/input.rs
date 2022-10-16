@@ -78,22 +78,27 @@ fn gamepad_input(
     let (guy, mut physics) = query.single_mut();
 
     // Movement
-    // TODO: dpad no longer an axis
-    //
-    // let dpad_x = axes
-    //     .get(GamepadAxis{ gamepad, axis_type: GamepadAxisType::DPadX })
-    //     .unwrap();
+
+    // let dpad_up = GamepadButton{ gamepad, button_type: GamepadButtonType::DPadUp };
+    // let dpad_down = GamepadButton{ gamepad, button_type: GamepadButtonType::DPadDown };
+    let dpad_left = GamepadButton{ gamepad, button_type: GamepadButtonType::DPadLeft };
+    let dpad_right = GamepadButton{ gamepad, button_type: GamepadButtonType::DPadRight };
+
+    let dpad_x: f32 = 
+        (-1. * buttons.pressed(dpad_left) as i32 as f32) +
+        buttons.pressed(dpad_right) as i32 as f32;
+
+
     let lstick_x = axes
         .get(GamepadAxis{ gamepad, axis_type: GamepadAxisType::LeftStickX })
         .unwrap();
 
-    // TODO: dpad no longer an axis
-    // let direction_x = if dpad_x == 0.0 {
-    //     lstick_x
-    // } else {
-    //     dpad_x
-    // };
-    let direction_x = lstick_x;
+    let direction_x = if dpad_x == 0.0 {
+        lstick_x
+    } else {
+        dpad_x
+    };
+
     physics.velocity.x = direction_x * guy.h_speed;
 
     // Jumping

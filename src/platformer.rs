@@ -13,7 +13,44 @@ pub struct Guy {
     pub h_speed: f32,
 }
 
-#[derive(Component)]
+#[derive(Bundle)]
+struct GuyBundle {
+    guy: Guy,
+    #[bundle]
+    sprite: SpriteBundle,
+    physics: PhysicsObject,
+}
+
+impl Default for GuyBundle {
+    fn default() -> Self {
+        const GUY_SIZE: Vec3 = Vec3::new(20.0, 50.0, 0.0);
+        GuyBundle {
+            guy: Guy { h_speed: 300. },
+            sprite: SpriteBundle {
+                transform: Transform {
+                    scale: GUY_SIZE,
+                    ..Default::default()
+                },
+                sprite: Sprite {
+                    color: Color::rgb(0.5, 0.5, 1.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            physics: PhysicsObject::default() 
+        }
+    }
+}
+
+impl GuyBundle {
+    fn with_translation(translation: Vec3) -> Self {
+        let mut guy = GuyBundle::default();
+        guy.sprite.transform.translation = translation;
+        guy
+    }
+}
+
+#[derive(Component, Default)]
 pub struct PhysicsObject {
     pub velocity: Vec2,
     pub old_position: Vec3,
@@ -120,29 +157,8 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub fn spawn_level(commands: &mut Commands) {
     info!("spawning level");
 
-    let guy_size: Vec3 = Vec3::new(20.0, 50.0, 0.0);
-
     // guy
-    commands
-        .spawn()
-        .insert(Guy { h_speed: 300. })
-        .insert_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(-300.0, -250.0, 0.0),
-                scale: guy_size,
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: Color::rgb(0.5, 0.5, 1.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(PhysicsObject {
-            velocity: Vec2::ZERO,
-            on_ground: None,
-            old_position: Vec3::ZERO,
-        });
+    commands.spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);

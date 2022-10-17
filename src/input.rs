@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
+use iyes_loopless::prelude::*;
 
 use crate::platformer::{spawn_level, AppState, Guy, PhysicsObject, PauseMessage};
 
@@ -36,33 +37,48 @@ pub fn input_system(
     action_state: Res<ActionState<Action>>,
     mut query: Query<(&Guy, &mut PhysicsObject)>,
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
-    state: Res<AppState>,
     mut commands: Commands,
+    state: Res<CurrentState<AppState>>,
 ) {
+
+    // TODO switch to iyes loopless states
+    // https://github.com/IyesGames/iyes_loopless#triggering-a-transition
+
     if action_state.just_pressed(Action::Start) {
         let mut pm_visibility = pause_message_vis.single_mut();
-        match *state {
+        match state.0 {
             AppState::MainMenu => {
                 info!("starting game");
+                commands.insert_resource(NextState(AppState::InGame));
+
+                // TODO move to InGame enter_system
                 spawn_level(&mut commands);
-                commands.insert_resource(AppState::InGame);
             }
             AppState::InGame => {
                 info!("Game paused");
-                commands.insert_resource(AppState::Paused);
+                commands.insert_resource(NextState(AppState::Paused));
+
+                // TODO move to Paused enter_system
                 pm_visibility.is_visible = true;
             }
             AppState::Paused => {
                 info!("Game resumed");
-                commands.insert_resource(AppState::InGame);
+                commands.insert_resource(NextState(AppState::InGame));
+
+                // TODO move to Paused exit_system
                 pm_visibility.is_visible = false;
             }
         };
         return;
     }
 
-    // TODO: remove after iyes loopless allows me to use proper states
-    match *state {
+    // TODO: translate to iyes loopless
+    // TODO: will we still need something like this here?
+    //   I think yes, because this system needs to run in states other than InGame,
+    //   to allow eg pressing Start to begin or unpause game
+    //   maybe I should split into 2 systems, one for the character and
+    //   one for the whole game
+    match state.0 {
         AppState::MainMenu => return,
         AppState::Paused => return,
         AppState::InGame => (),

@@ -113,8 +113,8 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             // Set the style of the TextBundle itself.
             .with_style(default()),
         )
-        .insert(Visibility { is_visible: false })
-        .insert(PauseMessage);
+        .insert(PauseMessage)
+        .insert(Visibility { is_visible: false });
 }
 
 pub fn spawn_level(commands: &mut Commands) {
@@ -150,13 +150,7 @@ pub fn spawn_level(commands: &mut Commands) {
 
 pub fn physics_system(
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
-    state: Res<AppState>,
 ) {
-    match *state {
-        AppState::MainMenu => return,
-        AppState::Paused => return,
-        AppState::InGame => (),
-    }
 
     for (_entity, mut physics, mut transform) in query.iter_mut() {
         // apply gravity
@@ -183,14 +177,7 @@ pub fn guy_collision_system(
         (With<Guy>, Without<Wall>),
     >,
     wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
-    state: Res<AppState>,
 ) {
-    match *state {
-        AppState::MainMenu => return,
-        AppState::Paused => return,
-        AppState::InGame => (),
-    }
-
     let (mut guy_physics, mut guy_transform) = guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
@@ -241,13 +228,7 @@ pub fn guy_collision_system(
 pub fn move_camera(
     mut camera: Query<&mut Transform, (With<Camera>, Without<Guy>)>,
     player: Query<&Transform, (With<Guy>, Without<Camera>)>,
-    state: Res<AppState>,
 ) {
-    match *state {
-        AppState::MainMenu => return,
-        AppState::Paused => return,
-        AppState::InGame => (),
-    }
     let guy_pos: Vec3 = player.single().translation;
 
     for mut transform in camera.iter_mut() {

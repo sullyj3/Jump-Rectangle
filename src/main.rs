@@ -13,10 +13,6 @@ use platformer::{
 
 fn main() {
     App::new()
-        // TODO look into these methods, they might be less verbose than
-        // the stage creation above
-        // .add_fixed_timestep()
-        // .add_fixed_timestep_system()
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
 
@@ -36,25 +32,29 @@ fn main() {
             Duration::from_secs_f32(PHYSICS_TIME_STEP),
             "physics_timestep",
         )
-        .add_fixed_timestep_system_set(
+        .add_fixed_timestep_system(
             "physics_timestep",
             0,
-            ConditionSet::new()
+            physics_system
                 .run_in_state(AppState::InGame)
                 .after("input")
-                .with_system(physics_system.label("physics"))
-                .with_system(
-                    guy_collision_system
-                        .label("guy_collision")
-                        .after("physics")
-                )
-                .into(),
+                .label("physics")
         )
-        .add_startup_system(setup)
+
+        .add_fixed_timestep_system(
+            "physics_timestep",
+            0,
+            guy_collision_system
+                .run_in_state(AppState::InGame)
+                .label("guy_collision")
+                .after("physics")
+        )
         .add_system(
             move_camera
                 .run_in_state(AppState::InGame)
                 .after("guy_collision"))
+
+        .add_startup_system(setup)
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
         .run();

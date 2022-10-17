@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::physics_object::PhysicsObject;
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Guy {
@@ -32,7 +32,7 @@ impl Default for GuyBundle {
                 },
                 ..Default::default()
             },
-            physics: PhysicsObject::default() 
+            physics: PhysicsObject::default(),
         }
     }
 }
@@ -44,4 +44,3 @@ impl GuyBundle {
         guy
     }
 }
-

@@ -1,4 +1,3 @@
-
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
@@ -112,7 +111,8 @@ pub fn spawn_level(commands: &mut Commands) {
     info!("spawning level");
 
     // guy
-    commands.spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
+    commands
+        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);
@@ -121,7 +121,6 @@ pub fn spawn_level(commands: &mut Commands) {
 pub fn physics_system(
     mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
 ) {
-
     for (_entity, mut physics, mut transform) in query.iter_mut() {
         // apply gravity
         physics.velocity.y -= 23.0;

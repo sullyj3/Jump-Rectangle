@@ -1,10 +1,10 @@
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
 use iyes_loopless::prelude::*;
+use leafwing_input_manager::prelude::*;
 
-use crate::platformer::AppState;
-use crate::physics_object::PhysicsObject;
 use crate::guy::*;
+use crate::physics_object::PhysicsObject;
+use crate::platformer::AppState;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Action {
@@ -41,12 +41,17 @@ pub fn input_system(
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
-
     if action_state.just_pressed(Action::Start) {
         match state.0 {
-            AppState::MainMenu => commands.insert_resource(NextState(AppState::InGame)),
-            AppState::InGame => commands.insert_resource(NextState(AppState::Paused)),
-            AppState::Paused => commands.insert_resource(NextState(AppState::InGame)),
+            AppState::MainMenu => {
+                commands.insert_resource(NextState(AppState::InGame))
+            }
+            AppState::InGame => {
+                commands.insert_resource(NextState(AppState::Paused))
+            }
+            AppState::Paused => {
+                commands.insert_resource(NextState(AppState::InGame))
+            }
         };
         return;
     }

@@ -1,3 +1,4 @@
+
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
@@ -5,20 +6,10 @@ use bevy::{
     // input::gamepad::*,
 };
 
+use crate::{guy::*, physics_object::PhysicsObject};
+
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
-
-#[derive(Component)]
-pub struct Guy {
-    pub h_speed: f32,
-}
-
-#[derive(Component)]
-pub struct PhysicsObject {
-    pub velocity: Vec2,
-    pub old_position: Vec3,
-    pub on_ground: Option<f32>, // the y coordinate if guy is on ground, else None
-}
 
 pub struct Level(Vec<Transform>);
 
@@ -120,29 +111,8 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub fn spawn_level(commands: &mut Commands) {
     info!("spawning level");
 
-    let guy_size: Vec3 = Vec3::new(20.0, 50.0, 0.0);
-
     // guy
-    commands
-        .spawn()
-        .insert(Guy { h_speed: 300. })
-        .insert_bundle(SpriteBundle {
-            transform: Transform {
-                translation: Vec3::new(-300.0, -250.0, 0.0),
-                scale: guy_size,
-                ..Default::default()
-            },
-            sprite: Sprite {
-                color: Color::rgb(0.5, 0.5, 1.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(PhysicsObject {
-            velocity: Vec2::ZERO,
-            on_ground: None,
-            old_position: Vec3::ZERO,
-        });
+    commands.spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);
@@ -216,6 +186,7 @@ pub fn guy_collision_system(
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
                 guy_physics.on_ground = Some(guy_transform.translation.y);
+                guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
                 // Not sure what to do here

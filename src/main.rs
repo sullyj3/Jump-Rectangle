@@ -2,6 +2,7 @@ mod input;
 mod platformer;
 mod guy;
 mod physics_object;
+mod state_transitions;
 
 use bevy::prelude::*;
 use bevy::utils::Duration;
@@ -12,6 +13,7 @@ use platformer::{
     guy_collision_system, move_camera, physics_system, setup, AppState,
     PHYSICS_TIME_STEP, TIME_STEP,
 };
+use state_transitions::*;
 
 fn main() {
     App::new()
@@ -59,5 +61,9 @@ fn main() {
         .add_startup_system(setup)
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
+
+        .add_enter_system(AppState::Paused, enter_paused)
+        .add_exit_system(AppState::Paused, exit_paused)
+        .add_exit_system(AppState::MainMenu, exit_menu)
         .run();
 }

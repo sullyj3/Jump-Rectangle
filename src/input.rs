@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use iyes_loopless::prelude::*;
 
-use crate::platformer::{spawn_level, AppState, PauseMessage};
+use crate::platformer::AppState;
 use crate::physics_object::PhysicsObject;
 use crate::guy::*;
 
@@ -38,35 +38,15 @@ pub fn make_input_map() -> InputMap<Action> {
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
     mut query: Query<(&Guy, &mut PhysicsObject, &mut Transform)>,
-    mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
 
     if action_state.just_pressed(Action::Start) {
-        let mut pm_visibility = pause_message_vis.single_mut();
         match state.0 {
-            AppState::MainMenu => {
-                info!("starting game");
-                commands.insert_resource(NextState(AppState::InGame));
-
-                // TODO move to InGame enter_system
-                spawn_level(&mut commands);
-            }
-            AppState::InGame => {
-                info!("Game paused");
-                commands.insert_resource(NextState(AppState::Paused));
-
-                // TODO move to Paused enter_system
-                pm_visibility.is_visible = true;
-            }
-            AppState::Paused => {
-                info!("Game resumed");
-                commands.insert_resource(NextState(AppState::InGame));
-
-                // TODO move to Paused exit_system
-                pm_visibility.is_visible = false;
-            }
+            AppState::MainMenu => commands.insert_resource(NextState(AppState::InGame)),
+            AppState::InGame => commands.insert_resource(NextState(AppState::Paused)),
+            AppState::Paused => commands.insert_resource(NextState(AppState::InGame)),
         };
         return;
     }

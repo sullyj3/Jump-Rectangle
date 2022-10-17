@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::platformer::{spawn_level, AppState, Guy, PhysicsObject, PauseMessage};
+use crate::platformer::{spawn_level, AppState, PauseMessage};
+use crate::physics_object::PhysicsObject;
+use crate::guy::*;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Action {
@@ -34,7 +36,7 @@ pub fn make_input_map() -> InputMap<Action> {
 
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
-    mut query: Query<(&Guy, &mut PhysicsObject)>,
+    mut query: Query<(&Guy, &mut PhysicsObject, &mut Transform)>,
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
     state: Res<AppState>,
     mut commands: Commands,
@@ -68,7 +70,7 @@ pub fn input_system(
         AppState::InGame => (),
     }
 
-    let (guy, mut physics) = query.single_mut();
+    let (guy, mut physics, mut transform) = query.single_mut();
 
     // Movement
     let direction_x = action_state
@@ -86,6 +88,7 @@ pub fn input_system(
     if action_state.just_pressed(Action::Jump) {
         if let Some(_) = physics.on_ground {
             physics.velocity.y = 750.0;
+            transform.scale = GUY_JUMPING_SIZE;
             physics.on_ground = None;
         }
     }

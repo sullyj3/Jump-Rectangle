@@ -1,3 +1,4 @@
+
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
@@ -5,57 +6,10 @@ use bevy::{
     // input::gamepad::*,
 };
 
+use crate::{guy::*, physics_object::PhysicsObject};
+
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
-
-#[derive(Component)]
-pub struct Guy {
-    pub h_speed: f32,
-}
-
-#[derive(Bundle)]
-struct GuyBundle {
-    guy: Guy,
-    #[bundle]
-    sprite: SpriteBundle,
-    physics: PhysicsObject,
-}
-
-impl Default for GuyBundle {
-    fn default() -> Self {
-        const GUY_SIZE: Vec3 = Vec3::new(20.0, 50.0, 0.0);
-        GuyBundle {
-            guy: Guy { h_speed: 300. },
-            sprite: SpriteBundle {
-                transform: Transform {
-                    scale: GUY_SIZE,
-                    ..Default::default()
-                },
-                sprite: Sprite {
-                    color: Color::rgb(0.5, 0.5, 1.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            physics: PhysicsObject::default() 
-        }
-    }
-}
-
-impl GuyBundle {
-    fn with_translation(translation: Vec3) -> Self {
-        let mut guy = GuyBundle::default();
-        guy.sprite.transform.translation = translation;
-        guy
-    }
-}
-
-#[derive(Component, Default)]
-pub struct PhysicsObject {
-    pub velocity: Vec2,
-    pub old_position: Vec3,
-    pub on_ground: Option<f32>, // the y coordinate if guy is on ground, else None
-}
 
 pub struct Level(Vec<Transform>);
 
@@ -245,6 +199,7 @@ pub fn guy_collision_system(
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
                 guy_physics.on_ground = Some(guy_transform.translation.y);
+                guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
                 // Not sure what to do here

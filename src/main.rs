@@ -1,5 +1,7 @@
 mod input;
 mod platformer;
+mod guy;
+mod physics_object;
 
 use bevy::prelude::*;
 use bevy::utils::Duration;

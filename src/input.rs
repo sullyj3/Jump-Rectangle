@@ -76,8 +76,8 @@ pub fn input_system(
 
     if action_state.just_pressed(Action::Debug) {
         // debug things here
-        let ap = action_state.clamped_axis_pair(Action::Move);
-        println!("Move axis pair: {:?}", ap);
+        let axis_pair = action_state.clamped_axis_pair(Action::Move);
+        println!("Move axis pair: {:?}", axis_pair);
     }
 
     if action_state.just_pressed(Action::Jump) {

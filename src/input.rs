@@ -43,9 +43,6 @@ pub fn input_system(
     state: Res<CurrentState<AppState>>,
 ) {
 
-    // TODO switch to iyes loopless states
-    // https://github.com/IyesGames/iyes_loopless#triggering-a-transition
-
     if action_state.just_pressed(Action::Start) {
         let mut pm_visibility = pause_message_vis.single_mut();
         match state.0 {
@@ -74,12 +71,9 @@ pub fn input_system(
         return;
     }
 
-    // TODO: translate to iyes loopless
-    // TODO: will we still need something like this here?
-    //   I think yes, because this system needs to run in states other than InGame,
-    //   to allow eg pressing Start to begin or unpause game
-    //   maybe I should split into 2 systems, one for the character and
-    //   one for the whole game
+    // TODO: split into 2 systems, one for the character and
+    // one for the whole game. this will allow us to conditionally run ingame input system only
+    // during AppState::InGame, eliminating this check
     match state.0 {
         AppState::MainMenu => return,
         AppState::Paused => return,

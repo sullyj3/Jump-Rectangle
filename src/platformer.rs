@@ -202,6 +202,13 @@ pub fn move_camera(
     let guy_pos: Vec3 = player.single().translation;
 
     for mut transform in camera.iter_mut() {
-        transform.translation = guy_pos;
+        let camera_pos: Vec3 = transform.translation;
+        // i don't even know what the units are
+        let epsilon: f32 = 1.0;
+        transform.translation = if camera_pos.distance(guy_pos) < epsilon {
+             guy_pos
+        } else {
+            camera_pos.lerp(guy_pos, 0.1)
+        }
     }
 }

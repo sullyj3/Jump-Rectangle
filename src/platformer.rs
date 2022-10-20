@@ -5,7 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-use crate::{guy::*, input::JumpTimer, physics_object::PhysicsObject};
+use crate::{guy::*, input::PreJumpTimer, physics_object::PhysicsObject};
 
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
@@ -220,7 +220,7 @@ pub fn move_camera(
 pub fn handle_pre_jump(
     time: Res<Time>,
     mut query: Query<
-        (Entity, &mut PhysicsObject, &mut JumpTimer, &mut Transform, &mut JumpState),
+        (Entity, &mut PhysicsObject, &mut PreJumpTimer, &mut Transform, &mut JumpState),
         With<Guy>,
     >,
     mut commands: Commands,
@@ -231,9 +231,9 @@ pub fn handle_pre_jump(
 
         if on_ground && !just_finished {
             jump(&mut physics, &mut transform, &mut jump_state);
-            commands.entity(guy).remove::<JumpTimer>();
+            commands.entity(guy).remove::<PreJumpTimer>();
         } else if just_finished {
-            commands.entity(guy).remove::<JumpTimer>();
+            commands.entity(guy).remove::<PreJumpTimer>();
         }
     }
 }

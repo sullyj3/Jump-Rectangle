@@ -36,19 +36,21 @@ pub fn make_input_map() -> InputMap<Action> {
 }
 
 #[derive(Component)]
-pub struct JumpTimer {
+pub struct PreJumpTimer {
     pub timer: Timer,
 }
 
-impl JumpTimer {
+impl PreJumpTimer {
     const PRE_JUMP_TOLERANCE: f32 = 0.07;
 
     fn new() -> Self {
-        JumpTimer {
+        PreJumpTimer {
             timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false),
         }
     }
 }
+
+
 
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
@@ -113,7 +115,7 @@ pub fn input_system(
             }
             JumpState::Airborne {} => {
                 // set pre-jump timer
-                commands.entity(guy_entity).insert(JumpTimer::new());
+                commands.entity(guy_entity).insert(PreJumpTimer::new());
             }
         }
     }

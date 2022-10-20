@@ -107,11 +107,14 @@ pub fn input_system(
 
     if action_state.just_pressed(Action::Jump) {
         // TODO refactor push this check into to a maybe_jump function
-        if let Some(_) = jump_state.on_ground {
-            jump(&mut physics, &mut transform, &mut jump_state);
-        } else {
-            // set pre-jump timer
-            commands.entity(guy_entity).insert(JumpTimer::new());
+        match *jump_state {
+            JumpState::OnGround { .. } => {
+                jump(&mut physics, &mut transform, &mut jump_state);
+            }
+            JumpState::Airborne {} => {
+                // set pre-jump timer
+                commands.entity(guy_entity).insert(JumpTimer::new());
+            }
         }
     }
 }

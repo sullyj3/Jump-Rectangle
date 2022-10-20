@@ -1,18 +1,25 @@
 use crate::physics_object::PhysicsObject;
 use bevy::prelude::*;
 
-#[derive(Component, Default)]
-pub struct JumpState {
-    // When the user presses the jump key just before hitting the ground, we allow them
-    // queue up a jump, which will be triggered when they make contact with the ground
-    // TODO
-    // pre_jump_timer: Timer,
+#[derive(Component)]
+pub enum JumpState {
+    OnGround { y: f32 },
+    Airborne {
+        // When the user presses the jump key just before hitting the ground, we allow them
+        // queue up a jump, which will be triggered when they make contact with the ground
+        // pre_jump_timer: Timer,
 
-    // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
-    // coyote_timer: Timer,
+        // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
+        // coyote_timer: Timer,
+    }
+}
 
-    // Contains the y coordinate if guy is on ground, else None
-    pub on_ground: Option<f32>,
+impl Default for JumpState {
+    fn default() -> Self {
+        Self::Airborne {
+            // pre_jump_timer: Default::default(),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -69,5 +76,5 @@ pub fn jump(
 ) {
     physics.velocity.y = 750.0;
     guy_transform.scale = GUY_JUMPING_SIZE;
-    jump_state.on_ground = None;
+    *jump_state = JumpState::Airborne {};
 }

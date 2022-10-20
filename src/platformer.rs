@@ -154,7 +154,7 @@ pub fn guy_collision_system(
     let (mut guy_physics, mut guy_transform, mut jump_state) = guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
-    jump_state.on_ground = None;
+    *jump_state = JumpState::Airborne {};
 
     for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
@@ -188,7 +188,7 @@ pub fn guy_collision_system(
                 guy_transform.translation.y = wall_transform.translation.y
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
-                jump_state.on_ground = Some(guy_transform.translation.y);
+                *jump_state = JumpState::OnGround { y: guy_transform.translation.y };
                 guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
@@ -227,7 +227,7 @@ pub fn handle_pre_jump(
 ) {
     for (guy, mut physics, mut timer, mut transform, mut jump_state) in query.iter_mut() {
         let just_finished = timer.timer.tick(time.delta()).just_finished();
-        let on_ground = jump_state.on_ground.is_some();
+        let on_ground = matches!(*jump_state, JumpState::OnGround {..});
 
         if on_ground && !just_finished {
             jump(&mut physics, &mut transform, &mut jump_state);

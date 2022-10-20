@@ -4,5 +4,4 @@ use bevy::prelude::*;
 pub struct PhysicsObject {
     pub velocity: Vec2,
     pub old_position: Vec3,
-    pub on_ground: Option<f32>, // the y coordinate if guy is on ground, else None
 }

@@ -52,7 +52,13 @@ impl JumpTimer {
 
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
-    mut query: Query<(Entity, &Guy, &mut PhysicsObject, &mut Transform)>,
+    mut query: Query<(
+        Entity,
+        &Guy,
+        &mut PhysicsObject,
+        &mut Transform,
+        &mut JumpState,
+    )>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
@@ -80,7 +86,8 @@ pub fn input_system(
         AppState::InGame => (),
     }
 
-    let (guy_entity, guy, mut physics, mut transform) = query.single_mut();
+    let (guy_entity, guy, mut physics, mut transform, mut jump_state) =
+        query.single_mut();
 
     // TODO it might also be good to have separate systems for eg movement and jumping. Is
     // this idiomatic bevy? need to research
@@ -99,18 +106,12 @@ pub fn input_system(
     }
 
     if action_state.just_pressed(Action::Jump) {
-        if let Some(_) = physics.on_ground {
-            jump(&mut physics, &mut transform);
+        // TODO refactor push this check into to a maybe_jump function
+        if let Some(_) = jump_state.on_ground {
+            jump(&mut physics, &mut transform, &mut jump_state);
         } else {
             // set pre-jump timer
             commands.entity(guy_entity).insert(JumpTimer::new());
         }
     }
-}
-
-// this should go in a dedicated guy module
-pub fn jump(physics: &mut PhysicsObject, guy_transform: &mut Transform) {
-    physics.velocity.y = 750.0;
-    guy_transform.scale = GUY_JUMPING_SIZE;
-    physics.on_ground = None;
 }

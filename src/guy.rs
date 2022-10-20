@@ -1,6 +1,20 @@
 use crate::physics_object::PhysicsObject;
 use bevy::prelude::*;
 
+#[derive(Component, Default)]
+pub struct JumpState {
+    // When the user presses the jump key just before hitting the ground, we allow them
+    // queue up a jump, which will be triggered when they make contact with the ground
+    // TODO
+    // pre_jump_timer: Timer,
+
+    // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
+    // coyote_timer: Timer,
+
+    // Contains the y coordinate if guy is on ground, else None
+    pub on_ground: Option<f32>,
+}
+
 #[derive(Component)]
 pub struct Guy {
     pub h_speed: f32,
@@ -12,6 +26,7 @@ pub struct GuyBundle {
     #[bundle]
     sprite: SpriteBundle,
     physics: PhysicsObject,
+    jump_state: JumpState,
 }
 
 pub const GUY_SIZE: Vec3 = Vec3::new(20.0, 50.0, 0.0);
@@ -33,6 +48,7 @@ impl Default for GuyBundle {
                 ..Default::default()
             },
             physics: PhysicsObject::default(),
+            jump_state: JumpState::default(),
         }
     }
 }
@@ -43,4 +59,15 @@ impl GuyBundle {
         guy.sprite.transform.translation = translation;
         guy
     }
+}
+
+
+pub fn jump(
+    physics: &mut PhysicsObject,
+    guy_transform: &mut Transform,
+    jump_state: &mut JumpState,
+) {
+    physics.velocity.y = 750.0;
+    guy_transform.scale = GUY_JUMPING_SIZE;
+    jump_state.on_ground = None;
 }

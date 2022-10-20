@@ -5,7 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-use crate::{guy::*, input::jump, input::JumpTimer, physics_object::PhysicsObject};
+use crate::{guy::*, input::JumpTimer, physics_object::PhysicsObject};
 
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
@@ -140,17 +140,21 @@ pub enum AppState {
     Paused,
 }
 
+struct LastOnGround {
+    timer: Timer,
+}
+
 pub fn guy_collision_system(
     mut guy_query: Query<
-        (&mut PhysicsObject, &mut Transform),
+        (&mut PhysicsObject, &mut Transform, &mut JumpState),
         (With<Guy>, Without<Wall>),
     >,
     wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
 ) {
-    let (mut guy_physics, mut guy_transform) = guy_query.single_mut();
+    let (mut guy_physics, mut guy_transform, mut jump_state) = guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
-    guy_physics.on_ground = None;
+    jump_state.on_ground = None;
 
     for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
@@ -184,7 +188,7 @@ pub fn guy_collision_system(
                 guy_transform.translation.y = wall_transform.translation.y
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
-                guy_physics.on_ground = Some(guy_transform.translation.y);
+                jump_state.on_ground = Some(guy_transform.translation.y);
                 guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
@@ -216,21 +220,20 @@ pub fn move_camera(
 pub fn handle_pre_jump(
     time: Res<Time>,
     mut query: Query<
-        (Entity, &mut PhysicsObject, &mut JumpTimer, &mut Transform),
+        (Entity, &mut PhysicsObject, &mut JumpTimer, &mut Transform, &mut JumpState),
         With<Guy>,
     >,
     mut commands: Commands,
 ) {
-    for (guy, mut physics, mut timer, mut transform) in query.iter_mut() {
+    for (guy, mut physics, mut timer, mut transform, mut jump_state) in query.iter_mut() {
         let just_finished = timer.timer.tick(time.delta()).just_finished();
-        let on_ground = physics.on_ground.is_some();
+        let on_ground = jump_state.on_ground.is_some();
 
         if on_ground && !just_finished {
-            jump(&mut physics, &mut transform);
+            jump(&mut physics, &mut transform, &mut jump_state);
             commands.entity(guy).remove::<JumpTimer>();
         } else if just_finished {
             commands.entity(guy).remove::<JumpTimer>();
         }
-
     }
 }

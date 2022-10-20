@@ -5,11 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-use crate::{guy::*, 
-    physics_object::PhysicsObject, 
-    input::JumpTimer,
-    input::jump,
-};
+use crate::{guy::*, input::jump, input::JumpTimer, physics_object::PhysicsObject};
 
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
@@ -210,7 +206,7 @@ pub fn move_camera(
         // i don't even know what the units are
         let epsilon: f32 = 1.0;
         transform.translation = if camera_pos.distance(guy_pos) < epsilon {
-             guy_pos
+            guy_pos
         } else {
             camera_pos.lerp(guy_pos, 0.1)
         }
@@ -219,7 +215,10 @@ pub fn move_camera(
 
 pub fn handle_pre_jump(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut PhysicsObject, &mut JumpTimer, &mut Transform), With<Guy>>,
+    mut query: Query<
+        (Entity, &mut PhysicsObject, &mut JumpTimer, &mut Transform),
+        With<Guy>,
+    >,
     mut commands: Commands,
 ) {
     for (guy, mut physics, mut timer, mut transform) in query.iter_mut() {

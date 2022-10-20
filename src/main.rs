@@ -10,8 +10,8 @@ use input::{input_system, make_input_map, Action};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 use platformer::{
-    guy_collision_system, move_camera, physics_system, setup, AppState,
-    PHYSICS_TIME_STEP, TIME_STEP, handle_pre_jump
+    guy_collision_system, handle_pre_jump, move_camera, physics_system, setup,
+    AppState, PHYSICS_TIME_STEP, TIME_STEP,
 };
 use state_transitions::*;
 
@@ -53,7 +53,7 @@ fn main() {
             handle_pre_jump
                 .run_in_state(AppState::InGame)
                 .after("guy_collision")
-                .label("pre_jump")
+                .label("pre_jump"),
         )
         .add_system(
             move_camera

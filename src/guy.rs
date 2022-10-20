@@ -10,13 +10,18 @@ pub struct PreJumpTimer {
 impl PreJumpTimer {
     const PRE_JUMP_TOLERANCE: f32 = 0.07;
 
-    pub fn new() -> Self {
+    pub fn pre_jump(&mut self) {
+        self.timer.reset();
+    }
+}
+
+impl Default for PreJumpTimer {
+    fn default() -> Self {
         PreJumpTimer {
             timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false),
         }
     }
 }
-
 
 #[derive(Component)]
 pub enum JumpState {
@@ -24,17 +29,18 @@ pub enum JumpState {
     Airborne {
         // When the user presses the jump key just before hitting the ground, we allow them
         // queue up a jump, which will be triggered when they make contact with the ground
-        // pre_jump_timer: Timer,
+        pre_jump_timer: PreJumpTimer,
 
         // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
         // coyote_timer: Timer,
     }
 }
 
+
 impl Default for JumpState {
     fn default() -> Self {
         Self::Airborne {
-            // pre_jump_timer: Default::default(),
+            pre_jump_timer: Default::default(),
         }
     }
 }

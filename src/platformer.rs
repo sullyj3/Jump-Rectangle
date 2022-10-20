@@ -220,12 +220,18 @@ pub fn move_camera(
 pub fn handle_pre_jump(
     time: Res<Time>,
     mut query: Query<
-        (Entity, &mut PhysicsObject, &mut PreJumpTimer, &mut Transform, &mut JumpState),
+        (Entity, &mut PhysicsObject, &mut Transform, &mut JumpState),
         With<Guy>,
     >,
     mut commands: Commands,
 ) {
-    for (guy, mut physics, mut timer, mut transform, mut jump_state) in query.iter_mut() {
+    for (guy, mut physics, mut transform, mut jump_state) in query.iter_mut() {
+        match jump_state {
+            JumpState::OnGround{ ... } {
+
+            }
+        }
+
         let just_finished = timer.timer.tick(time.delta()).just_finished();
         let on_ground = matches!(*jump_state, JumpState::OnGround {..});
 

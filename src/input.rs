@@ -99,9 +99,8 @@ pub fn input_system(
             JumpState::OnGround { .. } => {
                 jump(&mut physics, &mut transform, &mut jump_state);
             }
-            JumpState::Airborne {} => {
-                // set pre-jump timer
-                commands.entity(guy_entity).insert(PreJumpTimer::new());
+            JumpState::Airborne { pre_jump_timer } => {
+                pre_jump_timer.pre_jump();
             }
         }
     }

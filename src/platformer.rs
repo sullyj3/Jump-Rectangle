@@ -222,12 +222,15 @@ pub fn handle_pre_jump(
     mut commands: Commands,
 ) {
     for (guy, mut physics, mut timer, mut transform) in query.iter_mut() {
-        if timer.timer.tick(time.delta()).just_finished() {
+        let just_finished = timer.timer.tick(time.delta()).just_finished();
+        let on_ground = physics.on_ground.is_some();
+
+        if on_ground && !just_finished {
+            jump(&mut physics, &mut transform);
             commands.entity(guy).remove::<JumpTimer>();
-        } else {
-            if let Some(_) = physics.on_ground {
-                jump(&mut physics, &mut transform);
-            }
+        } else if just_finished {
+            commands.entity(guy).remove::<JumpTimer>();
         }
+
     }
 }

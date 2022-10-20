@@ -5,7 +5,7 @@ use bevy::{
     // input::gamepad::*,
 };
 
-use crate::{guy::*, input::PreJumpTimer, physics_object::PhysicsObject};
+use crate::{guy::*, physics_object::PhysicsObject};
 
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;

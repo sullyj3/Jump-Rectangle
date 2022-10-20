@@ -35,20 +35,6 @@ pub fn make_input_map() -> InputMap<Action> {
     input_map
 }
 
-#[derive(Component)]
-pub struct PreJumpTimer {
-    pub timer: Timer,
-}
-
-impl PreJumpTimer {
-    const PRE_JUMP_TOLERANCE: f32 = 0.07;
-
-    fn new() -> Self {
-        PreJumpTimer {
-            timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false),
-        }
-    }
-}
 
 
 

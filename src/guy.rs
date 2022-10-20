@@ -1,6 +1,23 @@
 use crate::physics_object::PhysicsObject;
 use bevy::prelude::*;
 
+
+#[derive(Component)]
+pub struct PreJumpTimer {
+    pub timer: Timer,
+}
+
+impl PreJumpTimer {
+    const PRE_JUMP_TOLERANCE: f32 = 0.07;
+
+    pub fn new() -> Self {
+        PreJumpTimer {
+            timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false),
+        }
+    }
+}
+
+
 #[derive(Component)]
 pub enum JumpState {
     OnGround { y: f32 },

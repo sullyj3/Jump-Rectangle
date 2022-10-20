@@ -35,9 +35,22 @@ pub fn make_input_map() -> InputMap<Action> {
     input_map
 }
 
+#[derive(Component)]
+pub struct JumpTimer{
+    pub timer: Timer
+}
+
+impl JumpTimer {
+    const PRE_JUMP_TOLERANCE: f32 = 0.07;
+
+    fn new() -> Self {
+        JumpTimer{timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false)}
+    }
+}
+
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
-    mut query: Query<(&Guy, &mut PhysicsObject, &mut Transform)>,
+    mut query: Query<(Entity, &Guy, &mut PhysicsObject, &mut Transform)>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
@@ -65,7 +78,10 @@ pub fn input_system(
         AppState::InGame => (),
     }
 
-    let (guy, mut physics, mut transform) = query.single_mut();
+    let (guy_entity, guy, mut physics, mut transform) = query.single_mut();
+
+    // TODO it might also be good to have separate systems for eg movement and jumping. Is
+    // this idiomatic bevy? need to research
 
     // Movement
     let direction_x = action_state
@@ -82,9 +98,17 @@ pub fn input_system(
 
     if action_state.just_pressed(Action::Jump) {
         if let Some(_) = physics.on_ground {
-            physics.velocity.y = 750.0;
-            transform.scale = GUY_JUMPING_SIZE;
-            physics.on_ground = None;
+            jump(&mut physics, &mut transform);
+        } else {
+            // set pre-jump timer
+            commands.entity(guy_entity).insert(JumpTimer::new());
         }
     }
+}
+
+// this should go in a dedicated guy module
+pub fn jump(physics: &mut PhysicsObject, guy_transform: &mut Transform) {
+    physics.velocity.y = 750.0;
+    guy_transform.scale = GUY_JUMPING_SIZE;
+    physics.on_ground = None;
 }

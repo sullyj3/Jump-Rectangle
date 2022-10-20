@@ -11,7 +11,7 @@ use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 use platformer::{
     guy_collision_system, move_camera, physics_system, setup, AppState,
-    PHYSICS_TIME_STEP, TIME_STEP,
+    PHYSICS_TIME_STEP, TIME_STEP, handle_pre_jump
 };
 use state_transitions::*;
 
@@ -46,6 +46,14 @@ fn main() {
                 .run_in_state(AppState::InGame)
                 .label("guy_collision")
                 .after("physics"),
+        )
+        .add_fixed_timestep_system(
+            "physics_timestep",
+            0,
+            handle_pre_jump
+                .run_in_state(AppState::InGame)
+                .after("guy_collision")
+                .label("pre_jump")
         )
         .add_system(
             move_camera

@@ -24,22 +24,22 @@ impl Default for PreJumpTimer {
 }
 
 #[derive(Component)]
-pub enum JumpState {
-    OnGround { y: f32 },
-    Airborne {
-        // When the user presses the jump key just before hitting the ground, we allow them
-        // queue up a jump, which will be triggered when they make contact with the ground
-        pre_jump_timer: PreJumpTimer,
+pub struct JumpState {
+    pub on_ground: Option<f32>,
 
-        // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
-        // coyote_timer: Timer,
-    }
+    // When the user presses the jump key just before hitting the ground, we allow them
+    // queue up a jump, which will be triggered when they make contact with the ground
+    pub pre_jump_timer: PreJumpTimer,
+
+    // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
+    // pub coyote_timer: Timer,
 }
 
 
 impl Default for JumpState {
     fn default() -> Self {
-        Self::Airborne {
+        Self {
+            on_ground: None,
             pre_jump_timer: Default::default(),
         }
     }
@@ -99,5 +99,5 @@ pub fn jump(
 ) {
     physics.velocity.y = 750.0;
     guy_transform.scale = GUY_JUMPING_SIZE;
-    *jump_state = JumpState::Airborne {};
+    jump_state.on_ground = None;
 }

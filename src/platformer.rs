@@ -140,10 +140,6 @@ pub enum AppState {
     Paused,
 }
 
-struct LastOnGround {
-    timer: Timer,
-}
-
 pub fn guy_collision_system(
     mut guy_query: Query<
         (&mut PhysicsObject, &mut Transform, &mut JumpState),
@@ -154,7 +150,7 @@ pub fn guy_collision_system(
     let (mut guy_physics, mut guy_transform, mut jump_state) = guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
-    *jump_state = JumpState::Airborne {};
+    jump_state.on_ground = None;
 
     for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
@@ -188,7 +184,7 @@ pub fn guy_collision_system(
                 guy_transform.translation.y = wall_transform.translation.y
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
-                *jump_state = JumpState::OnGround { y: guy_transform.translation.y };
+                jump_state.on_ground = Some(guy_transform.translation.y);
                 guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
@@ -220,26 +216,18 @@ pub fn move_camera(
 pub fn handle_pre_jump(
     time: Res<Time>,
     mut query: Query<
-        (Entity, &mut PhysicsObject, &mut Transform, &mut JumpState),
+        (&mut PhysicsObject, &mut Transform, &mut JumpState),
         With<Guy>,
     >,
-    mut commands: Commands,
 ) {
-    for (guy, mut physics, mut transform, mut jump_state) in query.iter_mut() {
-        match jump_state {
-            JumpState::OnGround{ ... } {
+    for (mut physics, mut transform, mut jump_state) in query.iter_mut() {
+        let on_ground = jump_state.on_ground.is_some();
+        let timer = &mut jump_state.pre_jump_timer.timer;
 
-            }
-        }
+        timer.tick(time.delta());
 
-        let just_finished = timer.timer.tick(time.delta()).just_finished();
-        let on_ground = matches!(*jump_state, JumpState::OnGround {..});
-
-        if on_ground && !just_finished {
+        if on_ground && !timer.finished() {
             jump(&mut physics, &mut transform, &mut jump_state);
-            commands.entity(guy).remove::<PreJumpTimer>();
-        } else if just_finished {
-            commands.entity(guy).remove::<PreJumpTimer>();
         }
     }
 }

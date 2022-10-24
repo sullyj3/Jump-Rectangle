@@ -1,8 +1,8 @@
 use crate::physics_object::PhysicsObject;
 use bevy::prelude::*;
+use bevy::utils::Duration;
 
-
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct PreJumpTimer {
     pub timer: Timer,
 }
@@ -23,7 +23,50 @@ impl Default for PreJumpTimer {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
+pub struct CoyoteTimer {
+    // None if we jumped to get into the air, rather than falling off a ledge
+    pub timer: Option<Timer>,
+}
+
+impl CoyoteTimer {
+    const COYOTE_TOLERANCE: f32 = 0.4;
+
+    pub fn tick(&mut self, delta: Duration) {
+        if let Some(timer) = &mut self.timer {
+            timer.tick(delta);
+        }
+    }
+
+    // if we jumped, set the timer to None to ensure we aren't allowing double 
+    // jumps
+    pub fn jump(&mut self) {
+        self.timer = None;
+    }
+    
+    pub fn set_on_ground(&mut self) {
+        *self = Self::default();
+        self.timer.as_mut().map( |t| t.reset() );
+    }
+
+    pub fn can_jump(&self) -> bool {
+        if let Some(timer) = &self.timer {
+            !timer.finished()
+        } else {
+            false
+        }
+    }
+}
+
+impl Default for CoyoteTimer {
+    fn default() -> Self {
+        Self {
+            timer: Some(Timer::from_seconds(Self::COYOTE_TOLERANCE, false)),
+        }
+    }
+}
+
+#[derive(Component, Debug)]
 pub struct JumpState {
     pub on_ground: Option<f32>,
 
@@ -31,8 +74,8 @@ pub struct JumpState {
     // queue up a jump, which will be triggered when they make contact with the ground
     pub pre_jump_timer: PreJumpTimer,
 
-    // TODO When the use jumps just after walking off a ledge, we allow them to jump anyway
-    // pub coyote_timer: Timer,
+    // When the payer jumps just after walking off a ledge, we allow them to jump anyway
+    pub coyote_timer: CoyoteTimer,
 }
 
 
@@ -41,6 +84,7 @@ impl Default for JumpState {
         Self {
             on_ground: None,
             pre_jump_timer: Default::default(),
+            coyote_timer: Default::default(),
         }
     }
 }
@@ -100,4 +144,5 @@ pub fn jump(
     physics.velocity.y = 750.0;
     guy_transform.scale = GUY_JUMPING_SIZE;
     jump_state.on_ground = None;
+    jump_state.coyote_timer.jump();
 }

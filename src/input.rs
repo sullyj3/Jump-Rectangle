@@ -99,7 +99,11 @@ pub fn input_system(
                 jump(&mut physics, &mut transform, &mut jump_state);
             }
             None => {
-                jump_state.pre_jump_timer.pre_jump();
+                if jump_state.coyote_timer.can_jump() {
+                    jump(&mut physics, &mut transform, &mut jump_state);
+                } else {
+                    jump_state.pre_jump_timer.pre_jump();
+                }
             }
         }
     }

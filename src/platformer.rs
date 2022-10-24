@@ -141,6 +141,7 @@ pub enum AppState {
 }
 
 pub fn guy_collision_system(
+    time: Res<Time>,
     mut guy_query: Query<
         (&mut PhysicsObject, &mut Transform, &mut JumpState),
         (With<Guy>, Without<Wall>),
@@ -151,6 +152,9 @@ pub fn guy_collision_system(
 
     let guy_size = guy_transform.scale.truncate();
     jump_state.on_ground = None;
+    
+    jump_state.coyote_timer.tick(time.delta());
+    
 
     for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
@@ -185,6 +189,8 @@ pub fn guy_collision_system(
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
                 jump_state.on_ground = Some(guy_transform.translation.y);
+                // reset the coyote timer, aka "time since guy was last on ground"
+                jump_state.coyote_timer.set_on_ground();
                 guy_transform.scale = GUY_SIZE;
             }
             Some(Collision::Inside) => {
@@ -213,7 +219,7 @@ pub fn move_camera(
     }
 }
 
-pub fn handle_pre_jump(
+pub fn update_jump_state(
     time: Res<Time>,
     mut query: Query<
         (&mut PhysicsObject, &mut Transform, &mut JumpState),
@@ -221,6 +227,10 @@ pub fn handle_pre_jump(
     >,
 ) {
     for (mut physics, mut transform, mut jump_state) in query.iter_mut() {
+
+        jump_state.coyote_timer.tick(time.delta());
+
+        // update PreJump and possibly enact triggered projump on contact with ground
         let on_ground = jump_state.on_ground.is_some();
         let timer = &mut jump_state.pre_jump_timer.timer;
 

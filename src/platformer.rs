@@ -48,12 +48,22 @@ pub fn make_level_1() -> Level {
             ..Default::default()
         },
         Transform {
-            translation: Vec3::new(-200.0, -200.0, 0.0),
+            translation: Vec3::new(-160.0, -200.0, 0.0),
             scale: Vec3::new(50.0, wall_thickness, 1.0),
             ..Default::default()
         },
         Transform {
-            translation: Vec3::new(-120.0, -180.0, 0.0),
+            translation: Vec3::new(-100.0, -180.0, 0.0),
+            scale: Vec3::new(90.0, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        Transform {
+            translation: Vec3::new(60., -200.0, 0.0),
+            scale: Vec3::new(50.0, wall_thickness, 1.0),
+            ..Default::default()
+        },
+        Transform {
+            translation: Vec3::new(160., -220.0, 0.0),
             scale: Vec3::new(50.0, wall_thickness, 1.0),
             ..Default::default()
         },

@@ -17,7 +17,13 @@ pub fn exit_paused(
     pm_visibility.is_visible = false;
 }
 
-pub fn exit_menu(mut commands: Commands) {
+pub fn exit_menu(mut commands: Commands, mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    asset_server: Res<AssetServer>,) {
     debug!("starting game");
-    spawn_level(&mut commands);
+
+    let texture_handle = asset_server.load("characters_packed.png");
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(24.0, 24.0), 9, 3);
+    let texture_atlas_handle: Handle<TextureAtlas> = texture_atlases.add(texture_atlas);
+
+    spawn_level(&mut commands, texture_atlas_handle);
 }

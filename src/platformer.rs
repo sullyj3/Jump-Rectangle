@@ -92,7 +92,8 @@ fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
 #[derive(Component, PartialEq, Eq)]
 pub struct PauseMessage;
 
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>,
+             ) {
     // Add the game's entities to our world
 
     // cameras
@@ -115,14 +116,26 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         )
         .insert(PauseMessage)
         .insert(Visibility { is_visible: false });
+
+
 }
 
-pub fn spawn_level(commands: &mut Commands) {
+pub fn spawn_level(commands: &mut Commands, texture_atlas_handle: Handle<TextureAtlas>) {
     info!("spawning level");
+
+    //texture
+    commands.spawn_bundle(
+        SpriteSheetBundle {
+            texture_atlas: texture_atlas_handle,
+            transform: Transform::from_scale(Vec3::splat(6.)),
+            ..default()
+        }
+        );
 
     // guy
     commands
         .spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
+
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);

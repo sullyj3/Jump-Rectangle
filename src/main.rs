@@ -5,6 +5,7 @@ mod platformer;
 mod state_transitions;
 
 use bevy::prelude::*;
+use bevy::render::texture::ImageSettings;
 use bevy::utils::Duration;
 use input::{input_system, make_input_map, Action};
 use iyes_loopless::prelude::*;
@@ -25,6 +26,7 @@ fn main() {
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
+        .insert_resource(ImageSettings::default_nearest())
         .insert_resource(ActionState::<Action>::default())
         .insert_resource(make_input_map())
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))

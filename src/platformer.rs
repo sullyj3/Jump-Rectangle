@@ -127,7 +127,6 @@ pub fn spawn_level(commands: &mut Commands, texture_atlas_handle: Handle<Texture
     commands.spawn_bundle(
         SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
-            transform: Transform::from_scale(Vec3::splat(6.)),
             ..default()
         }
         );

@@ -1,5 +1,6 @@
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
+use bevy_polyline::prelude::*;
 
 pub fn enter_paused(
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
@@ -21,6 +22,8 @@ pub fn exit_menu(
     mut commands: Commands,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
+    mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
+    mut polylines: ResMut<Assets<Polyline>>,
 ) {
     debug!("starting game");
 
@@ -44,5 +47,7 @@ pub fn exit_menu(
         &mut commands,
         character_texture_atlas_handle,
         tile_texture_atlas_handle,
+        polyline_materials,
+        polylines,
     );
 }

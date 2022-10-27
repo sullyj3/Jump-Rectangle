@@ -46,7 +46,10 @@ impl CoyoteTimer {
 
     pub fn set_on_ground(&mut self) {
         *self = Self::default();
-        self.timer.as_mut().map(|t| t.reset());
+
+        if let Some(t) = self.timer.as_mut() {
+            t.reset()
+        }
     }
 
     pub fn can_jump(&self) -> bool {
@@ -66,7 +69,7 @@ impl Default for CoyoteTimer {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub struct JumpState {
     pub on_ground: Option<f32>,
 
@@ -76,16 +79,6 @@ pub struct JumpState {
 
     // When the payer jumps just after walking off a ledge, we allow them to jump anyway
     pub coyote_timer: CoyoteTimer,
-}
-
-impl Default for JumpState {
-    fn default() -> Self {
-        Self {
-            on_ground: None,
-            pre_jump_timer: Default::default(),
-            coyote_timer: Default::default(),
-        }
-    }
 }
 
 #[derive(Component)]

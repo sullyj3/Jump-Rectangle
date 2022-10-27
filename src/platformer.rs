@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use bevy::{
     prelude::*,
     sprite::collide_aabb::{collide, Collision},
@@ -78,7 +80,7 @@ fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
     for transform in level {
         commands
             .spawn_bundle(SpriteBundle {
-                transform: transform.clone(),
+                transform: *transform,
                 sprite: Sprite {
                     color: wall_color,
                     ..Default::default()

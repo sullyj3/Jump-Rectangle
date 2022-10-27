@@ -49,6 +49,7 @@ pub fn input_system(
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
+    // Start button state transitions
     if action_state.just_pressed(Action::Start) {
         match state.0 {
             AppState::MainMenu => {
@@ -64,6 +65,7 @@ pub fn input_system(
         return;
     }
 
+    // Exit if we're not in game, and therefore shouldn't handle in game input
     // TODO: split into 2 systems, one for the character and
     // one for the whole game. this will allow us to conditionally run ingame input system only
     // during AppState::InGame, eliminating this check
@@ -89,13 +91,11 @@ pub fn input_system(
         let direction_x = action_state
             .clamped_axis_pair(Action::Move)
             .map_or(0., |axis_data| axis_data.x());
-
         physics.velocity.x = direction_x * guy.h_speed;
     }
 
+    // debug things here
     if action_state.just_pressed(Action::Debug) {
-        // debug things here
-
         // toggle flying
         if can_fly.is_some() {
             commands.entity(guy_entity).remove::<CanFly>();
@@ -107,18 +107,6 @@ pub fn input_system(
     }
 
     if action_state.just_pressed(Action::Jump) {
-        // TODO refactor push this check into to a maybe_jump function
-        match jump_state.on_ground {
-            Some(..) => {
-                jump(&mut physics, &mut transform, &mut jump_state);
-            }
-            None => {
-                if jump_state.coyote_timer.can_jump() {
-                    jump(&mut physics, &mut transform, &mut jump_state);
-                } else {
-                    jump_state.pre_jump_timer.pre_jump();
-                }
-            }
-        }
+        jump_state.try_jump(&mut physics, &mut transform);
     }
 }

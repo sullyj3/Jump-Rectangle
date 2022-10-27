@@ -81,6 +81,46 @@ pub struct JumpState {
     pub coyote_timer: CoyoteTimer,
 }
 
+impl JumpState {
+    pub fn try_jump(
+        &mut self,
+        physics: &mut PhysicsObject,
+        guy_transform: &mut Transform,
+    ) {
+        enum JumpAction {
+            Jump,
+            PreJump,
+        }
+
+        let should_jump = match self.on_ground {
+            Some(..) => JumpAction::Jump,
+            None => {
+                if self.coyote_timer.can_jump() {
+                    JumpAction::Jump
+                } else {
+                    JumpAction::PreJump
+                }
+            }
+        };
+
+        match should_jump {
+            JumpAction::Jump => self.perform_jump(physics, guy_transform),
+            JumpAction::PreJump => self.pre_jump_timer.pre_jump(),
+        }
+    }
+
+    pub fn perform_jump(
+        &mut self,
+        physics: &mut PhysicsObject,
+        guy_transform: &mut Transform,
+    ) {
+        physics.velocity.y = 750.0;
+        guy_transform.scale = GUY_JUMPING_SIZE;
+        self.on_ground = None;
+        self.coyote_timer.jump();
+    }
+}
+
 #[derive(Component)]
 pub struct Guy {
     pub h_speed: f32,
@@ -129,14 +169,3 @@ impl GuyBundle {
 
 #[derive(Component)]
 pub struct CanFly;
-
-pub fn jump(
-    physics: &mut PhysicsObject,
-    guy_transform: &mut Transform,
-    jump_state: &mut JumpState,
-) {
-    physics.velocity.y = 750.0;
-    guy_transform.scale = GUY_JUMPING_SIZE;
-    jump_state.on_ground = None;
-    jump_state.coyote_timer.jump();
-}

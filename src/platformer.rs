@@ -276,14 +276,14 @@ pub fn update_jump_state(
     for (mut physics, mut transform, mut jump_state) in query.iter_mut() {
         jump_state.coyote_timer.tick(time.delta());
 
-        // update PreJump and possibly enact triggered projump on contact with ground
+        // update PreJump and possibly enact triggered prejump on contact with ground
         let on_ground = jump_state.on_ground.is_some();
         let timer = &mut jump_state.pre_jump_timer.timer;
 
         timer.tick(time.delta());
 
         if on_ground && !timer.finished() {
-            jump(&mut physics, &mut transform, &mut jump_state);
+            jump_state.perform_jump(&mut physics, &mut transform);
         }
     }
 }

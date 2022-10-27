@@ -18,6 +18,7 @@ pub fn make_input_map() -> InputMap<Action> {
     let mut input_map = InputMap::default();
     // keyboard
     input_map.insert_multiple([
+        (KeyCode::Grave, Action::Debug),
         (KeyCode::Space, Action::Jump),
         (KeyCode::Return, Action::Start),
     ]);

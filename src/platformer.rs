@@ -7,7 +7,10 @@ use bevy::{
     // input::gamepad::*,
 };
 
-use crate::{guy::*, physics_object::PhysicsObject};
+use crate::{
+    guy::*,
+    physics_object::{Gravity, PhysicsObject},
+};
 
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
@@ -121,30 +124,50 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 pub fn spawn_level(
     commands: &mut Commands,
-    texture_atlas_handle: Handle<TextureAtlas>,
+    character_texture_atlas_handle: Handle<TextureAtlas>,
+    tile_texture_atlas_handle: Handle<TextureAtlas>,
 ) {
     info!("spawning level");
 
     //texture
     commands.spawn_bundle(SpriteSheetBundle {
-        texture_atlas: texture_atlas_handle,
+        texture_atlas: character_texture_atlas_handle,
         ..default()
     });
 
+    let tile_width = 18;
+    for i in 0..10 {
+        let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                transform: Transform {
+                    translation,
+                    ..default()
+                },
+                texture_atlas: tile_texture_atlas_handle.clone(),
+                ..default()
+            })
+            .insert(Wall);
+    }
+
     // guy
     commands
-        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
+        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
+        // todo Gravity should be in guy bundle
+        // .insert(Gravity)
+        .insert(CanFly);
 
-    let level1 = make_level_1();
-    add_level_walls(commands, &level1);
+    // let level1 = make_level_1();
+    // add_level_walls(commands, &level1);
 }
 
 pub fn physics_system(
-    mut query: Query<(Entity, &mut PhysicsObject, &mut Transform)>,
+    mut query: Query<(Entity, &mut PhysicsObject, &mut Transform, Option<&Gravity>)>,
 ) {
-    for (_entity, mut physics, mut transform) in query.iter_mut() {
-        // apply gravity
-        physics.velocity.y -= 23.0;
+    for (_entity, mut physics, mut transform, gravity) in query.iter_mut() {
+        if gravity.is_some() {
+            physics.velocity.y -= 23.0;
+        }
 
         // move
         let delta = physics.velocity * PHYSICS_TIME_STEP;
@@ -185,6 +208,9 @@ pub fn guy_collision_system(
             guy_transform.translation,
             guy_size,
         );
+        if let Some(col) = &collision {
+            debug!("collision detected: {:?}", col);
+        }
         match collision {
             Some(Collision::Left) => {
                 guy_physics.velocity.x = guy_physics.velocity.x.min(0.0);

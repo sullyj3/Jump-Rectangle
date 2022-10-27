@@ -95,8 +95,8 @@ pub struct GuyBundle {
     jump_state: JumpState,
 }
 
-pub const GUY_SIZE: Vec3 = Vec3::new(20.0, 50.0, 0.0);
-pub const GUY_JUMPING_SIZE: Vec3 = Vec3::new(17.0, 55.0, 0.0);
+pub const GUY_SIZE: Vec3 = Vec3::new(16.0, 16.0, 0.0);
+pub const GUY_JUMPING_SIZE: Vec3 = Vec3::new(14.0, 20.0, 0.0);
 
 impl Default for GuyBundle {
     fn default() -> Self {
@@ -126,6 +126,9 @@ impl GuyBundle {
         guy
     }
 }
+
+#[derive(Component)]
+pub struct CanFly;
 
 pub fn jump(
     physics: &mut PhysicsObject,

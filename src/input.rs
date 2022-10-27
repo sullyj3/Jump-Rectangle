@@ -3,7 +3,7 @@ use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::guy::*;
-use crate::physics_object::PhysicsObject;
+use crate::physics_object::{Gravity, PhysicsObject};
 use crate::platformer::AppState;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
@@ -37,7 +37,14 @@ pub fn make_input_map() -> InputMap<Action> {
 
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
-    mut query: Query<(&Guy, &mut PhysicsObject, &mut Transform, &mut JumpState)>,
+    mut query: Query<(
+        Entity,
+        &Guy,
+        &mut PhysicsObject,
+        &mut Transform,
+        &mut JumpState,
+        Option<&CanFly>,
+    )>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
@@ -65,22 +72,37 @@ pub fn input_system(
         AppState::InGame => (),
     }
 
-    let (guy, mut physics, mut transform, mut jump_state) = query.single_mut();
+    let (guy_entity, guy, mut physics, mut transform, mut jump_state, can_fly) =
+        query.single_mut();
 
     // TODO it might also be good to have separate systems for eg movement and jumping. Is
     // this idiomatic bevy? need to research
 
     // Movement
-    let direction_x = action_state
-        .clamped_axis_pair(Action::Move)
-        .map_or(0., |axis_data| axis_data.x());
+    if can_fly.is_some() {
+        let direction = action_state
+            .clamped_axis_pair(Action::Move)
+            .map_or(Vec2::ZERO, |axis_data| axis_data.xy());
+        physics.velocity = direction * guy.h_speed;
+    } else {
+        let direction_x = action_state
+            .clamped_axis_pair(Action::Move)
+            .map_or(0., |axis_data| axis_data.x());
 
-    physics.velocity.x = direction_x * guy.h_speed;
+        physics.velocity.x = direction_x * guy.h_speed;
+    }
 
     if action_state.just_pressed(Action::Debug) {
         // debug things here
-        let axis_pair = action_state.clamped_axis_pair(Action::Move);
-        println!("Move axis pair: {:?}", axis_pair);
+
+        // toggle flying
+        if can_fly.is_some() {
+            commands.entity(guy_entity).remove::<CanFly>();
+            commands.entity(guy_entity).insert(Gravity);
+        } else {
+            commands.entity(guy_entity).insert(CanFly);
+            commands.entity(guy_entity).remove::<Gravity>();
+        }
     }
 
     if action_state.just_pressed(Action::Jump) {

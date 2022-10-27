@@ -24,11 +24,25 @@ pub fn exit_menu(
 ) {
     debug!("starting game");
 
-    let texture_handle = asset_server.load("characters_packed.png");
-    let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(24.0, 24.0), 9, 3);
-    let texture_atlas_handle: Handle<TextureAtlas> =
-        texture_atlases.add(texture_atlas);
+    let character_texture_handle = asset_server.load("characters_packed.png");
+    let character_texture_atlas = TextureAtlas::from_grid(
+        character_texture_handle,
+        Vec2::new(24.0, 24.0),
+        9,
+        3,
+    );
+    let character_texture_atlas_handle: Handle<TextureAtlas> =
+        texture_atlases.add(character_texture_atlas);
 
-    spawn_level(&mut commands, texture_atlas_handle);
+    let tile_texture_handle = asset_server.load("tiles_packed.png");
+    let tile_texture_atlas =
+        TextureAtlas::from_grid(tile_texture_handle, Vec2::new(18.0, 18.0), 20, 9);
+    let tile_texture_atlas_handle: Handle<TextureAtlas> =
+        texture_atlases.add(tile_texture_atlas);
+
+    spawn_level(
+        &mut commands,
+        character_texture_atlas_handle,
+        tile_texture_atlas_handle,
+    );
 }

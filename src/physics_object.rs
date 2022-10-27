@@ -5,3 +5,6 @@ pub struct PhysicsObject {
     pub velocity: Vec2,
     pub old_position: Vec3,
 }
+
+#[derive(Component)]
+pub struct Gravity;

@@ -38,15 +38,15 @@ impl CoyoteTimer {
         }
     }
 
-    // if we jumped, set the timer to None to ensure we aren't allowing double 
+    // if we jumped, set the timer to None to ensure we aren't allowing double
     // jumps
     pub fn jump(&mut self) {
         self.timer = None;
     }
-    
+
     pub fn set_on_ground(&mut self) {
         *self = Self::default();
-        self.timer.as_mut().map( |t| t.reset() );
+        self.timer.as_mut().map(|t| t.reset());
     }
 
     pub fn can_jump(&self) -> bool {
@@ -77,7 +77,6 @@ pub struct JumpState {
     // When the payer jumps just after walking off a ledge, we allow them to jump anyway
     pub coyote_timer: CoyoteTimer,
 }
-
 
 impl Default for JumpState {
     fn default() -> Self {
@@ -134,7 +133,6 @@ impl GuyBundle {
         guy
     }
 }
-
 
 pub fn jump(
     physics: &mut PhysicsObject,

@@ -11,19 +11,17 @@ use input::{input_system, make_input_map, Action};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 use platformer::{
-    guy_collision_system, update_jump_state, move_camera, physics_system, setup,
+    guy_collision_system, move_camera, physics_system, setup, update_jump_state,
     AppState, PHYSICS_TIME_STEP, TIME_STEP,
 };
 use state_transitions::*;
 
 fn main() {
     App::new()
-        .insert_resource(
-            bevy::log::LogSettings {
-                level: bevy::log::Level::DEBUG,
-                ..Default::default()
-            }
-        )
+        .insert_resource(bevy::log::LogSettings {
+            level: bevy::log::Level::DEBUG,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .insert_resource(ImageSettings::default_nearest())

@@ -92,8 +92,7 @@ fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
 #[derive(Component, PartialEq, Eq)]
 pub struct PauseMessage;
 
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>,
-             ) {
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Add the game's entities to our world
 
     // cameras
@@ -116,25 +115,23 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>,
         )
         .insert(PauseMessage)
         .insert(Visibility { is_visible: false });
-
-
 }
 
-pub fn spawn_level(commands: &mut Commands, texture_atlas_handle: Handle<TextureAtlas>) {
+pub fn spawn_level(
+    commands: &mut Commands,
+    texture_atlas_handle: Handle<TextureAtlas>,
+) {
     info!("spawning level");
 
     //texture
-    commands.spawn_bundle(
-        SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
-            ..default()
-        }
-        );
+    commands.spawn_bundle(SpriteSheetBundle {
+        texture_atlas: texture_atlas_handle,
+        ..default()
+    });
 
     // guy
     commands
         .spawn_bundle(GuyBundle::with_translation(Vec3::new(-300.0, -250.0, 0.0)));
-
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);
@@ -170,13 +167,13 @@ pub fn guy_collision_system(
     >,
     wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
 ) {
-    let (mut guy_physics, mut guy_transform, mut jump_state) = guy_query.single_mut();
+    let (mut guy_physics, mut guy_transform, mut jump_state) =
+        guy_query.single_mut();
 
     let guy_size = guy_transform.scale.truncate();
     jump_state.on_ground = None;
-    
+
     jump_state.coyote_timer.tick(time.delta());
-    
 
     for wall_transform in wall_query.iter() {
         let wall_size = wall_transform.scale.truncate();
@@ -249,7 +246,6 @@ pub fn update_jump_state(
     >,
 ) {
     for (mut physics, mut transform, mut jump_state) in query.iter_mut() {
-
         jump_state.coyote_timer.tick(time.delta());
 
         // update PreJump and possibly enact triggered projump on contact with ground

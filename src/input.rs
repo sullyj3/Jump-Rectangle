@@ -35,17 +35,9 @@ pub fn make_input_map() -> InputMap<Action> {
     input_map
 }
 
-
-
-
 pub fn input_system(
     action_state: Res<ActionState<Action>>,
-    mut query: Query<(
-        &Guy,
-        &mut PhysicsObject,
-        &mut Transform,
-        &mut JumpState,
-    )>,
+    mut query: Query<(&Guy, &mut PhysicsObject, &mut Transform, &mut JumpState)>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
 ) {
@@ -73,8 +65,7 @@ pub fn input_system(
         AppState::InGame => (),
     }
 
-    let (guy, mut physics, mut transform, mut jump_state) =
-        query.single_mut();
+    let (guy, mut physics, mut transform, mut jump_state) = query.single_mut();
 
     // TODO it might also be good to have separate systems for eg movement and jumping. Is
     // this idiomatic bevy? need to research
@@ -95,7 +86,7 @@ pub fn input_system(
     if action_state.just_pressed(Action::Jump) {
         // TODO refactor push this check into to a maybe_jump function
         match jump_state.on_ground {
-            Some( .. ) => {
+            Some(..) => {
                 jump(&mut physics, &mut transform, &mut jump_state);
             }
             None => {

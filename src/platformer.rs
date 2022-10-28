@@ -16,84 +16,84 @@ use crate::{
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 
-pub struct Level(Vec<Transform>);
+// pub struct Level(Vec<Transform>);
 
-pub fn make_level_1() -> Level {
-    let wall_thickness = 10.0;
-    let bounds = Vec2::new(900.0, 600.0);
+// pub fn make_level_1() -> Level {
+//     let wall_thickness = 10.0;
+//     let bounds = Vec2::new(900.0, 600.0);
 
-    Level(vec![
-        // left
-        Transform {
-            translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
-            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // right
-        Transform {
-            translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
-            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // bottom
-        Transform {
-            translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
-            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // top
-        Transform {
-            translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
-            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // platforms
-        Transform {
-            translation: Vec3::new(-280.0, -220.0, 0.0),
-            scale: Vec3::new(50.0, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        Transform {
-            translation: Vec3::new(-160.0, -200.0, 0.0),
-            scale: Vec3::new(50.0, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        Transform {
-            translation: Vec3::new(-100.0, -180.0, 0.0),
-            scale: Vec3::new(90.0, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        Transform {
-            translation: Vec3::new(60., -200.0, 0.0),
-            scale: Vec3::new(50.0, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        Transform {
-            translation: Vec3::new(160., -220.0, 0.0),
-            scale: Vec3::new(50.0, wall_thickness, 1.0),
-            ..Default::default()
-        },
-    ])
-}
+//     Level(vec![
+//         // left
+//         Transform {
+//             translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
+//             scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // right
+//         Transform {
+//             translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
+//             scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // bottom
+//         Transform {
+//             translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
+//             scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // top
+//         Transform {
+//             translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
+//             scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // platforms
+//         Transform {
+//             translation: Vec3::new(-280.0, -220.0, 0.0),
+//             scale: Vec3::new(50.0, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         Transform {
+//             translation: Vec3::new(-160.0, -200.0, 0.0),
+//             scale: Vec3::new(50.0, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         Transform {
+//             translation: Vec3::new(-100.0, -180.0, 0.0),
+//             scale: Vec3::new(90.0, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         Transform {
+//             translation: Vec3::new(60., -200.0, 0.0),
+//             scale: Vec3::new(50.0, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         Transform {
+//             translation: Vec3::new(160., -220.0, 0.0),
+//             scale: Vec3::new(50.0, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//     ])
+// }
 
 #[derive(Component)]
 pub struct Wall;
 
-fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
-    let wall_color = Color::rgb(0.8, 0.8, 0.8);
-    for transform in level {
-        commands
-            .spawn_bundle(SpriteBundle {
-                transform: *transform,
-                sprite: Sprite {
-                    color: wall_color,
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(Wall);
-    }
-}
+// fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
+//     let wall_color = Color::rgb(0.8, 0.8, 0.8);
+//     for transform in level {
+//         commands
+//             .spawn_bundle(SpriteBundle {
+//                 transform: *transform,
+//                 sprite: Sprite {
+//                     color: wall_color,
+//                     ..Default::default()
+//                 },
+//                 ..Default::default()
+//             })
+//             .insert(Wall);
+//     }
+// }
 
 #[derive(Component, PartialEq, Eq)]
 pub struct PauseMessage;
@@ -184,14 +184,14 @@ pub fn spawn_level(
     }
 
     // guy
-    let guy = commands
+    commands
         .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
         // todo Gravity should be in guy bundle
         // .insert(Gravity)
         .insert(CanFly)
         .insert(DrawAABB);
 
-    let level1 = make_level_1();
+    // let level1 = make_level_1();
     // add_level_walls(commands, &level1);
 }
 

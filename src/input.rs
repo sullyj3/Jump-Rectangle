@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;

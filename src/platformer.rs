@@ -6,6 +6,7 @@ use bevy::{
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
+use bevy_prototype_debug_lines::*;
 
 use crate::{
     guy::*,
@@ -122,6 +123,31 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Visibility { is_visible: false });
 }
 
+#[derive(Component)]
+pub struct DrawAABB;
+
+pub fn draw_aabbs(
+    mut lines: ResMut<DebugLines>,
+    q: Query<(&Transform, Option<&Wall>), With<DrawAABB>>,
+) {
+    for (transform, opt_wall) in q.iter() {
+        let top_left: Vec3 = transform.translation;
+        let top_right: Vec3 = top_left + transform.scale.x * Vec3::X;
+        let bottom_left: Vec3 = top_left + transform.scale.y * Vec3::Y;
+        let bottom_right: Vec3 = top_left + transform.scale;
+
+        if opt_wall.is_some() {
+            debug!("drawing wall bounds. Transform is:");
+            debug!("{:?}", transform);
+        }
+
+        lines.line_colored(top_left, top_right, 0.0, Color::GREEN);
+        lines.line_colored(top_right, bottom_right, 0.0, Color::GREEN);
+        lines.line_colored(bottom_right, bottom_left, 0.0, Color::GREEN);
+        lines.line_colored(bottom_left, top_left, 0.0, Color::GREEN);
+    }
+}
+
 pub fn spawn_level(
     commands: &mut Commands,
     character_texture_atlas_handle: Handle<TextureAtlas>,
@@ -135,31 +161,40 @@ pub fn spawn_level(
         ..default()
     });
 
-    // let tile_width = 18;
-    // for i in 0..10 {
-    //     let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
+    let tile_width = 18;
+    for i in 0..10 {
+        let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
 
-    //     commands
-    //         .spawn_bundle(SpriteSheetBundle {
-    //             transform: Transform {
-    //                 translation,
-    //                 ..default()
-    //             },
-    //             texture_atlas: tile_texture_atlas_handle.clone(),
-    //             ..default()
-    //         })
-    //         .insert(Wall);
-    // }
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                transform: Transform {
+                    translation,
+                    // TODO this is not correct
+                    // we need the scale to remain at default for the sprite to be drawn at its
+                    // native size
+                    // however, we need scale for Guy, since it's just a color
+                    // what this implies is that the AABB needs to be decoupled from the scale
+                    // possibly we chould create an AABB component
+                    scale: Vec3::new(tile_width as f32, tile_width as f32, 0.0),
+                    ..default()
+                },
+                texture_atlas: tile_texture_atlas_handle.clone(),
+                ..default()
+            })
+            .insert(Wall)
+            .insert(DrawAABB);
+    }
 
     // guy
     let guy = commands
         .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
         // todo Gravity should be in guy bundle
         // .insert(Gravity)
-        .insert(CanFly);
+        .insert(CanFly)
+        .insert(DrawAABB);
 
     let level1 = make_level_1();
-    add_level_walls(commands, &level1);
+    // add_level_walls(commands, &level1);
 }
 
 pub fn physics_system(

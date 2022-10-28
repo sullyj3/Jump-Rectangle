@@ -7,12 +7,13 @@ mod state_transitions;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSettings;
 use bevy::utils::Duration;
+use bevy_prototype_debug_lines::*;
 use input::{input_system, make_input_map, Action};
 use iyes_loopless::{fixedtimestep::FixedTimestepStageLabel, prelude::*};
 use leafwing_input_manager::prelude::*;
 use platformer::{
-    guy_collision_system, move_camera, physics_system, setup, update_jump_state,
-    AppState, PHYSICS_TIME_STEP, TIME_STEP,
+    draw_aabbs, guy_collision_system, move_camera, physics_system, setup,
+    update_jump_state, AppState, PHYSICS_TIME_STEP, TIME_STEP,
 };
 use state_transitions::*;
 
@@ -24,6 +25,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
+        .add_plugin(DebugLinesPlugin::default())
         .insert_resource(ImageSettings::default_nearest())
         .insert_resource(ActionState::<Action>::default())
         .insert_resource(make_input_map())
@@ -67,6 +69,7 @@ fn main() {
                 .after("guy_collision"),
         )
         .add_startup_system(setup)
+        .add_system(draw_aabbs)
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
         .add_enter_system(AppState::Paused, enter_paused)

@@ -79,6 +79,18 @@ pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 #[derive(Component)]
 pub struct Wall;
 
+// for now we assume they're fixed size, specified by some constant
+#[derive(Component)]
+pub struct AABB {
+    scale: &'static Vec2,
+}
+
+impl AABB {
+    pub fn new(scale: &'static Vec2) -> Self {
+        Self { scale }
+    }
+}
+
 // fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
 //     let wall_color = Color::rgb(0.8, 0.8, 0.8);
 //     for transform in level {
@@ -126,18 +138,18 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 #[derive(Component)]
 pub struct DrawAABB;
 
-// TODO update this once we have proper aabb components
 pub fn draw_aabbs(
     mut lines: ResMut<DebugLines>,
-    q: Query<&Transform, With<DrawAABB>>,
+    q: Query<(&Transform, &AABB), With<DrawAABB>>,
 ) {
-    for transform in q.iter() {
-        // TODO we don't want to use scale for AABBs. Revisit this
-        // after fixing this issue in guy_collision_system
-        let top_left: Vec3 = transform.translation - transform.scale / 2.;
-        let top_right: Vec3 = top_left + transform.scale.x * Vec3::X;
-        let bottom_left: Vec3 = top_left + transform.scale.y * Vec3::Y;
-        let bottom_right: Vec3 = top_left + transform.scale;
+    for (transform, AABB { scale }) in q.iter() {
+        // determine coordinates for drawing aabb
+        let the_scale: Vec3 = scale.extend(0.);
+
+        let top_left: Vec3 = transform.translation - the_scale / 2.;
+        let top_right: Vec3 = top_left + the_scale.x * Vec3::X;
+        let bottom_left: Vec3 = top_left + the_scale.y * Vec3::Y;
+        let bottom_right: Vec3 = top_left + the_scale;
 
         lines.line_colored(top_left, top_right, 0.0, Color::GREEN);
         lines.line_colored(top_right, bottom_right, 0.0, Color::GREEN);
@@ -163,23 +175,20 @@ pub fn spawn_level(
     for i in 0..10 {
         let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
 
+        const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
         commands
             .spawn_bundle(SpriteSheetBundle {
                 transform: Transform {
                     translation,
-                    // TODO this is not correct
-                    // we need the scale to remain at default for the sprite to be drawn at its
-                    // native size
-                    // however, we need scale for Guy, since it's just a color
-                    // what this implies is that the AABB needs to be decoupled from the scale
-                    // possibly we chould create an AABB component
-                    scale: Vec3::new(tile_width as f32, tile_width as f32, 0.0),
                     ..default()
                 },
                 texture_atlas: tile_texture_atlas_handle.clone(),
                 ..default()
             })
             .insert(Wall)
+            .insert(AABB {
+                scale: &WALL_TILE_SIZE,
+            })
             .insert(DrawAABB);
     }
 
@@ -221,25 +230,28 @@ pub enum AppState {
 pub fn guy_collision_system(
     time: Res<Time>,
     mut guy_query: Query<
-        (&mut PhysicsObject, &mut Transform, &mut JumpState),
+        (&mut PhysicsObject, &mut Transform, &AABB, &mut JumpState),
         (With<Guy>, Without<Wall>),
     >,
-    wall_query: Query<&Transform, (With<Wall>, Without<Guy>)>,
+    wall_query: Query<(&Transform, &AABB), (With<Wall>, Without<Guy>)>,
 ) {
-    let (mut guy_physics, mut guy_transform, mut jump_state) =
-        guy_query.single_mut();
+    let (
+        mut guy_physics,
+        mut guy_transform,
+        AABB { scale: &guy_size },
+        mut jump_state,
+    ) = guy_query.single_mut();
 
-    let guy_size = guy_transform.scale.truncate();
     jump_state.on_ground = None;
 
     jump_state.coyote_timer.tick(time.delta());
 
-    for wall_transform in wall_query.iter() {
+    for (wall_transform, AABB { scale: &wall_size }) in wall_query.iter() {
         // TODO BUG: using the scale as the size is not correct
         // eg we can have an 18x18 image with a scale of 1.0
         // see https://docs.rs/bevy/latest/bevy/asset/struct.Handle.html#strong-and-weak
         // for info on proper way to do this
-        let wall_size = wall_transform.scale.truncate();
+        // let wall_size = wall_transform.scale.truncate();
         let collision = collide(
             wall_transform.translation,
             wall_size,
@@ -276,7 +288,8 @@ pub fn guy_collision_system(
                 jump_state.on_ground = Some(guy_transform.translation.y);
                 // reset the coyote timer, aka "time since guy was last on ground"
                 jump_state.coyote_timer.set_on_ground();
-                guy_transform.scale = GUY_SIZE;
+                // TODO changing the scale like this is probs not what we want
+                guy_transform.scale = GUY_SIZE.extend(0.);
             }
             Some(Collision::Inside) => {
                 // Not sure what to do here

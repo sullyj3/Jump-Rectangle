@@ -9,7 +9,7 @@ use bevy::render::texture::ImageSettings;
 use bevy::utils::Duration;
 use bevy_polyline::prelude::*;
 use input::{input_system, make_input_map, Action};
-use iyes_loopless::prelude::*;
+use iyes_loopless::{fixedtimestep::FixedTimestepStageLabel, prelude::*};
 use leafwing_input_manager::prelude::*;
 use platformer::{
     guy_collision_system, move_camera, physics_system, setup,
@@ -36,7 +36,8 @@ fn main() {
         // we should factor it into an ingame and out of game system
         // then we can add the ingame input handler as a component to guy
         .add_fixed_timestep_system("input_timestep", 0, input_system.label("input"))
-        .add_fixed_timestep(
+        .add_fixed_timestep_after_stage(
+            FixedTimestepStageLabel("input_timestep"),
             Duration::from_secs_f32(PHYSICS_TIME_STEP),
             "physics_timestep",
         )
@@ -45,7 +46,6 @@ fn main() {
             0,
             physics_system
                 .run_in_state(AppState::InGame)
-                .after("input")
                 .label("physics"),
         )
         .add_fixed_timestep_system(

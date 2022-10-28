@@ -141,39 +141,39 @@ pub fn spawn_level(
         ..default()
     });
 
-    let tile_width = 18;
-    for i in 0..10 {
-        let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
+    // let tile_width = 18;
+    // for i in 0..10 {
+    //     let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
 
-        let pl = polylines.add(Polyline {
-            vertices: vec![-Vec3::ONE, Vec3::ONE],
-            ..Default::default()
-        });
+    //     let pl = polylines.add(Polyline {
+    //         vertices: vec![-Vec3::ONE, Vec3::ONE],
+    //         ..Default::default()
+    //     });
 
-        let aabb_line = commands.spawn_bundle(PolylineBundle {
-            polyline: pl.clone(),
-            material: polyline_materials.add(PolylineMaterial {
-                width: 4.0,
-                color: Color::RED,
-                perspective: false,
-                ..Default::default()
-            }),
-            ..Default::default()
-        });
+    //     let aabb_line = commands.spawn_bundle(PolylineBundle {
+    //         polyline: pl.clone(),
+    //         material: polyline_materials.add(PolylineMaterial {
+    //             width: 4.0,
+    //             color: Color::RED,
+    //             perspective: false,
+    //             ..Default::default()
+    //         }),
+    //         ..Default::default()
+    //     });
 
-        commands
-            .spawn_bundle(SpriteSheetBundle {
-                transform: Transform {
-                    translation,
-                    ..default()
-                },
-                texture_atlas: tile_texture_atlas_handle.clone(),
-                ..default()
-            })
-            .insert(Wall)
-            .insert(AABBLink(pl))
-            .id();
-    }
+    //     commands
+    //         .spawn_bundle(SpriteSheetBundle {
+    //             transform: Transform {
+    //                 translation,
+    //                 ..default()
+    //             },
+    //             texture_atlas: tile_texture_atlas_handle.clone(),
+    //             ..default()
+    //         })
+    //         .insert(Wall)
+    //         .insert(AABBLink(pl))
+    //         .id();
+    // }
 
     // guy
     let guy = commands
@@ -182,8 +182,8 @@ pub fn spawn_level(
         // .insert(Gravity)
         .insert(CanFly);
 
-    // let level1 = make_level_1();
-    // add_level_walls(commands, &level1);
+    let level1 = make_level_1();
+    add_level_walls(commands, &level1);
 }
 
 pub fn update_aabb_line_system(
@@ -198,6 +198,7 @@ pub fn update_aabb_line_system(
         let bottom_right: Vec3 = top_left + transform.scale;
 
         if let Some(mut polyline) = polylines.get_mut(&handle) {
+            debug!("setting vertices for entity at translation {:?}", top_left);
             polyline.vertices =
                 vec![top_left, top_right, bottom_right, bottom_left, top_left];
         }

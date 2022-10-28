@@ -132,9 +132,9 @@ pub fn draw_aabbs(
     q: Query<&Transform, With<DrawAABB>>,
 ) {
     for transform in q.iter() {
-        // TODO BUG translation is in fact the center, not the top left
-        // consult the guy_collision_system collide() call
-        let top_left: Vec3 = transform.translation;
+        // TODO we don't want to use scale for AABBs. Revisit this
+        // after fixing this issue in guy_collision_system
+        let top_left: Vec3 = transform.translation - transform.scale / 2.;
         let top_right: Vec3 = top_left + transform.scale.x * Vec3::X;
         let bottom_left: Vec3 = top_left + transform.scale.y * Vec3::Y;
         let bottom_right: Vec3 = top_left + transform.scale;
@@ -237,6 +237,8 @@ pub fn guy_collision_system(
     for wall_transform in wall_query.iter() {
         // TODO BUG: using the scale as the size is not correct
         // eg we can have an 18x18 image with a scale of 1.0
+        // see https://docs.rs/bevy/latest/bevy/asset/struct.Handle.html#strong-and-weak
+        // for info on proper way to do this
         let wall_size = wall_transform.scale.truncate();
         let collision = collide(
             wall_transform.translation,

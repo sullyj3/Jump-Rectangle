@@ -80,12 +80,14 @@ pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 pub struct Wall;
 
 // for now we assume they're fixed size, specified by some constant
+// revisit this once dynamically checking size becomes more ergonomic for
+// both sprites and spritesheets/texture atlases
 #[derive(Component)]
-pub struct AABB {
+pub struct Aabb {
     scale: &'static Vec2,
 }
 
-impl AABB {
+impl Aabb {
     pub fn new(scale: &'static Vec2) -> Self {
         Self { scale }
     }
@@ -136,13 +138,13 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 #[derive(Component)]
-pub struct DrawAABB;
+pub struct DrawAabb;
 
 pub fn draw_aabbs(
     mut lines: ResMut<DebugLines>,
-    q: Query<(&Transform, &AABB), With<DrawAABB>>,
+    q: Query<(&Transform, &Aabb), With<DrawAabb>>,
 ) {
-    for (transform, AABB { scale }) in q.iter() {
+    for (transform, Aabb { scale }) in q.iter() {
         // determine coordinates for drawing aabb
         let the_scale: Vec3 = scale.extend(0.);
 
@@ -186,10 +188,10 @@ pub fn spawn_level(
                 ..default()
             })
             .insert(Wall)
-            .insert(AABB {
+            .insert(Aabb {
                 scale: &WALL_TILE_SIZE,
             })
-            .insert(DrawAABB);
+            .insert(DrawAabb);
     }
 
     // guy
@@ -198,7 +200,7 @@ pub fn spawn_level(
         // todo Gravity should be in guy bundle
         // .insert(Gravity)
         .insert(CanFly)
-        .insert(DrawAABB);
+        .insert(DrawAabb);
 
     // let level1 = make_level_1();
     // add_level_walls(commands, &level1);
@@ -230,15 +232,15 @@ pub enum AppState {
 pub fn guy_collision_system(
     time: Res<Time>,
     mut guy_query: Query<
-        (&mut PhysicsObject, &mut Transform, &AABB, &mut JumpState),
+        (&mut PhysicsObject, &mut Transform, &Aabb, &mut JumpState),
         (With<Guy>, Without<Wall>),
     >,
-    wall_query: Query<(&Transform, &AABB), (With<Wall>, Without<Guy>)>,
+    wall_query: Query<(&Transform, &Aabb), (With<Wall>, Without<Guy>)>,
 ) {
     let (
         mut guy_physics,
         mut guy_transform,
-        AABB { scale: &guy_size },
+        Aabb { scale: &guy_size },
         mut jump_state,
     ) = guy_query.single_mut();
 
@@ -246,7 +248,7 @@ pub fn guy_collision_system(
 
     jump_state.coyote_timer.tick(time.delta());
 
-    for (wall_transform, AABB { scale: &wall_size }) in wall_query.iter() {
+    for (wall_transform, Aabb { scale: &wall_size }) in wall_query.iter() {
         // TODO BUG: using the scale as the size is not correct
         // eg we can have an 18x18 image with a scale of 1.0
         // see https://docs.rs/bevy/latest/bevy/asset/struct.Handle.html#strong-and-weak

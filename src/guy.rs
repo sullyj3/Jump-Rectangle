@@ -1,5 +1,5 @@
 use crate::physics_object::PhysicsObject;
-use crate::platformer::AABB;
+use crate::platformer::Aabb;
 use bevy::prelude::*;
 use bevy::utils::Duration;
 
@@ -134,7 +134,7 @@ pub struct GuyBundle {
     sprite: SpriteBundle,
     physics: PhysicsObject,
     jump_state: JumpState,
-    aabb: AABB,
+    aabb: Aabb,
 }
 
 pub const GUY_SIZE: Vec2 = Vec2::new(16.0, 16.0);
@@ -157,7 +157,7 @@ impl Default for GuyBundle {
             },
             physics: PhysicsObject::default(),
             jump_state: JumpState::default(),
-            aabb: AABB::new(&GUY_SIZE),
+            aabb: Aabb::new(&GUY_SIZE),
         }
     }
 }

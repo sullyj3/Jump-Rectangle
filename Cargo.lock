@@ -532,17 +532,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_polyline"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1198822d48734a1de7f0fe9ddb67111a0b63ab732a612458249d7ccb23c32666"
-dependencies = [
- "bevy",
- "bitflags",
- "naga",
-]
-
-[[package]]
 name = "bevy_ptr"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2469,7 +2458,6 @@ name = "platformer"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "bevy_polyline",
  "iyes_loopless",
  "leafwing-input-manager",
 ]

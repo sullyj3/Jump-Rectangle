@@ -17,4 +17,3 @@ opt-level = 3
 bevy = { version = "0.8", features = ["dynamic"] }
 leafwing-input-manager = "0.5.2"
 iyes_loopless = { git = "https://github.com/IyesGames/iyes_loopless.git" }
-bevy_polyline = "0.3"

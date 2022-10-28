@@ -6,7 +6,6 @@ use bevy::{
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
-use bevy_polyline::prelude::*;
 
 use crate::{
     guy::*,
@@ -123,15 +122,10 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Visibility { is_visible: false });
 }
 
-#[derive(Component)]
-pub struct AABBLink(Handle<Polyline>);
-
 pub fn spawn_level(
     commands: &mut Commands,
     character_texture_atlas_handle: Handle<TextureAtlas>,
     tile_texture_atlas_handle: Handle<TextureAtlas>,
-    mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
-    mut polylines: ResMut<Assets<Polyline>>,
 ) {
     info!("spawning level");
 
@@ -145,22 +139,6 @@ pub fn spawn_level(
     // for i in 0..10 {
     //     let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
 
-    //     let pl = polylines.add(Polyline {
-    //         vertices: vec![-Vec3::ONE, Vec3::ONE],
-    //         ..Default::default()
-    //     });
-
-    //     let aabb_line = commands.spawn_bundle(PolylineBundle {
-    //         polyline: pl.clone(),
-    //         material: polyline_materials.add(PolylineMaterial {
-    //             width: 4.0,
-    //             color: Color::RED,
-    //             perspective: false,
-    //             ..Default::default()
-    //         }),
-    //         ..Default::default()
-    //     });
-
     //     commands
     //         .spawn_bundle(SpriteSheetBundle {
     //             transform: Transform {
@@ -170,9 +148,7 @@ pub fn spawn_level(
     //             texture_atlas: tile_texture_atlas_handle.clone(),
     //             ..default()
     //         })
-    //         .insert(Wall)
-    //         .insert(AABBLink(pl))
-    //         .id();
+    //         .insert(Wall);
     // }
 
     // guy
@@ -184,25 +160,6 @@ pub fn spawn_level(
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);
-}
-
-pub fn update_aabb_line_system(
-    commands: Commands,
-    q: Query<(&Transform, &AABBLink)>,
-    mut polylines: ResMut<Assets<Polyline>>,
-) {
-    for (transform, AABBLink(handle)) in q.iter() {
-        let top_left: Vec3 = transform.translation;
-        let top_right: Vec3 = top_left + transform.scale.x * Vec3::X;
-        let bottom_left: Vec3 = top_left + transform.scale.y * Vec3::Y;
-        let bottom_right: Vec3 = top_left + transform.scale;
-
-        if let Some(mut polyline) = polylines.get_mut(&handle) {
-            debug!("setting vertices for entity at translation {:?}", top_left);
-            polyline.vertices =
-                vec![top_left, top_right, bottom_right, bottom_left, top_left];
-        }
-    }
 }
 
 pub fn physics_system(

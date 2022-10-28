@@ -126,20 +126,18 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 #[derive(Component)]
 pub struct DrawAABB;
 
+// TODO update this once we have proper aabb components
 pub fn draw_aabbs(
     mut lines: ResMut<DebugLines>,
-    q: Query<(&Transform, Option<&Wall>), With<DrawAABB>>,
+    q: Query<&Transform, With<DrawAABB>>,
 ) {
-    for (transform, opt_wall) in q.iter() {
+    for transform in q.iter() {
+        // TODO BUG translation is in fact the center, not the top left
+        // consult the guy_collision_system collide() call
         let top_left: Vec3 = transform.translation;
         let top_right: Vec3 = top_left + transform.scale.x * Vec3::X;
         let bottom_left: Vec3 = top_left + transform.scale.y * Vec3::Y;
         let bottom_right: Vec3 = top_left + transform.scale;
-
-        if opt_wall.is_some() {
-            debug!("drawing wall bounds. Transform is:");
-            debug!("{:?}", transform);
-        }
 
         lines.line_colored(top_left, top_right, 0.0, Color::GREEN);
         lines.line_colored(top_right, bottom_right, 0.0, Color::GREEN);
@@ -237,6 +235,8 @@ pub fn guy_collision_system(
     jump_state.coyote_timer.tick(time.delta());
 
     for wall_transform in wall_query.iter() {
+        // TODO BUG: using the scale as the size is not correct
+        // eg we can have an 18x18 image with a scale of 1.0
         let wall_size = wall_transform.scale.truncate();
         let collision = collide(
             wall_transform.translation,

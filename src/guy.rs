@@ -31,7 +31,7 @@ pub struct CoyoteTimer {
 }
 
 impl CoyoteTimer {
-    const COYOTE_TOLERANCE: f32 = 0.4;
+    const COYOTE_TOLERANCE: f32 = 0.3;
 
     pub fn tick(&mut self, delta: Duration) {
         if let Some(timer) = &mut self.timer {

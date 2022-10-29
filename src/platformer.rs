@@ -137,6 +137,7 @@ fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
                 ..Default::default()
             })
             .insert(Wall)
+            .insert(DrawAabb)
             .insert(Aabb::default());
     }
 }

@@ -284,6 +284,8 @@ pub fn guy_collision_system(
         guy_query.single_mut();
 
     let guy_size = guy_aabb.get_scale(&*guy_transform);
+
+    // assume we're in the air until proven otherwise
     jump_state.on_ground = None;
     jump_state.coyote_timer.tick(time.delta());
 
@@ -320,8 +322,7 @@ pub fn guy_collision_system(
                 guy_transform.translation.y = wall_transform.translation.y
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
-                jump_state.on_ground = Some(guy_transform.translation.y);
-                jump_state.coyote_timer.set_on_ground();
+                jump_state.set_on_ground(guy_transform.translation.y);
                 guy_transform.scale = GUY_SIZE.extend(0.);
             }
             Some(Collision::Inside) => {

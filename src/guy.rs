@@ -45,7 +45,7 @@ impl CoyoteTimer {
         self.timer = None;
     }
 
-    pub fn set_on_ground(&mut self) {
+    fn set_on_ground(&mut self) {
         *self = Self::default();
 
         if let Some(t) = self.timer.as_mut() {
@@ -119,6 +119,11 @@ impl JumpState {
         guy_transform.scale = GUY_JUMPING_SIZE;
         self.on_ground = None;
         self.coyote_timer.jump();
+    }
+
+    pub fn set_on_ground(&mut self, y: f32) {
+        self.on_ground = Some(y);
+        self.coyote_timer.set_on_ground();
     }
 }
 

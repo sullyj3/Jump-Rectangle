@@ -17,6 +17,8 @@ use platformer::{
 };
 use state_transitions::*;
 
+const DRAW_AABBS: bool = false;
+
 fn main() {
     App::new()
         .insert_resource(bevy::log::LogSettings {
@@ -69,7 +71,7 @@ fn main() {
                 .after("guy_collision"),
         )
         .add_startup_system(setup)
-        .add_system(draw_aabbs)
+        .add_system(draw_aabbs.run_if(|| DRAW_AABBS))
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
         .add_enter_system(AppState::Paused, enter_paused)

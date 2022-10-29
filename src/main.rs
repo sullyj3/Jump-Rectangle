@@ -23,10 +23,10 @@ fn main() {
             level: bevy::log::Level::DEBUG,
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(DebugLinesPlugin::default())
-        .insert_resource(ImageSettings::default_nearest())
         .insert_resource(ActionState::<Action>::default())
         .insert_resource(make_input_map())
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))

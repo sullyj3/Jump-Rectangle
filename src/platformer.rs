@@ -119,7 +119,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // cameras
     commands.spawn_bundle(Camera2dBundle {
         projection: OrthographicProjection {
-            scale: 0.75,
+            scale: 0.65,
             ..Default::default()
         },
         ..Default::default()

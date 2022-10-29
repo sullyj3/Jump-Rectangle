@@ -156,7 +156,7 @@ impl Default for GuyBundle {
                 },
                 ..Default::default()
             },
-            aabb: Aabb::new_static(&GUY_SIZE),
+            aabb: Aabb::TransformScaleAabb,
             physics: PhysicsObject::default(),
             jump_state: JumpState::default(),
             gravity: Gravity::default(),

@@ -321,13 +321,13 @@ pub fn guy_collision_system(
                     + (wall_size.y / 2.)
                     + (guy_size.y / 2.);
                 jump_state.on_ground = Some(guy_transform.translation.y);
-                // reset the coyote timer, aka "time since guy was last on ground"
                 jump_state.coyote_timer.set_on_ground();
-                // TODO changing the scale like this is probs not what we want
                 guy_transform.scale = GUY_SIZE.extend(0.);
             }
             Some(Collision::Inside) => {
-                // Not sure what to do here
+                // Not sure if there's anything more reasonable we can do here
+                guy_physics.velocity = Vec2::ZERO;
+                guy_transform.translation = guy_physics.old_position;
             }
             None => (),
         }

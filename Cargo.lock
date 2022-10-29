@@ -788,6 +788,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_vector_components"
+version = "0.1.0"
+source = "git+https://github.com/sullyj3/bevy_vector_components#7bf1bc018d41a7fe3a35aba6a9650299dd30dd82"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_window"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2468,6 +2476,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_prototype_debug_lines",
+ "bevy_vector_components",
  "iyes_loopless",
  "leafwing-input-manager",
 ]

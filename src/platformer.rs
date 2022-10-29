@@ -7,6 +7,7 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
+use bevy_vector_components::*;
 
 use crate::{
     guy::*,
@@ -116,7 +117,13 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Add the game's entities to our world
 
     // cameras
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn_bundle(Camera2dBundle {
+        projection: OrthographicProjection {
+            scale: 0.75,
+            ..Default::default()
+        },
+        ..Default::default()
+    });
     // Pause message
     commands
         .spawn_bundle(
@@ -149,8 +156,11 @@ pub fn draw_aabbs(
         let the_scale: Vec3 = scale.extend(0.);
 
         let top_left: Vec3 = transform.translation - the_scale / 2.;
-        let top_right: Vec3 = top_left + the_scale.x * Vec3::X;
-        let bottom_left: Vec3 = top_left + the_scale.y * Vec3::Y;
+        // let top_right: Vec3 = top_left + the_scale.x * Vec3::X;
+        // let bottom_left: Vec3 = top_left + the_scale.y * Vec3::Y;
+        let top_right: Vec3 = top_left + the_scale.x_component();
+        let bottom_left: Vec3 = top_left + the_scale.y_component();
+
         let bottom_right: Vec3 = top_left + the_scale;
 
         lines.line_colored(top_left, top_right, 0.0, Color::GREEN);
@@ -260,9 +270,6 @@ pub fn guy_collision_system(
             guy_transform.translation,
             guy_size,
         );
-        if let Some(col) = &collision {
-            debug!("collision detected: {:?}", col);
-        }
         match collision {
             Some(Collision::Left) => {
                 guy_physics.velocity.x = guy_physics.velocity.x.min(0.0);

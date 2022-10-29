@@ -10,7 +10,6 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
-use bevy_vector_components::*;
 
 use crate::{
     guy::*,
@@ -106,9 +105,17 @@ impl Aabb {
         }
     }
 
-    // pub fn get_rect(&self) -> Rect {
-    //     unimplemented!()
-    // }
+    pub fn get_rect(&self, transform: &Transform) -> Rect {
+        let scale = self.get_scale(transform);
+        let translation = transform.translation.truncate();
+        let top_left: Vec2 = translation - scale / 2.;
+        let bottom_right: Vec2 = translation + scale / 2.;
+
+        Rect {
+            min: top_left,
+            max: bottom_right,
+        }
+    }
 }
 
 impl Default for Aabb {
@@ -176,26 +183,26 @@ pub fn draw_aabbs(
     q: Query<(&Transform, &Aabb), With<DrawAabb>>,
 ) {
     for (transform, aabb) in q.iter() {
-        let the_scale: Vec3 = match aabb {
-            Aabb::StaticAabb { scale: &scale } => scale.extend(0.0),
-            Aabb::TransformScaleAabb => transform.scale,
-        };
-
-        let top_left: Vec3 = transform.translation - the_scale / 2.;
-        // let top_right: Vec3 = top_left + the_scale.x * Vec3::X;
-        // let bottom_left: Vec3 = top_left + the_scale.y * Vec3::Y;
-        let top_right: Vec3 = top_left + the_scale.x_component();
-        let bottom_left: Vec3 = top_left + the_scale.y_component();
-
-        let bottom_right: Vec3 = top_left + the_scale;
-
-        // TODO create a function from Aabb and Transform to Rect
-        // TODO create a function that draws a Rect
-        lines.line_colored(top_left, top_right, 0.0, Color::GREEN);
-        lines.line_colored(top_right, bottom_right, 0.0, Color::GREEN);
-        lines.line_colored(bottom_right, bottom_left, 0.0, Color::GREEN);
-        lines.line_colored(bottom_left, top_left, 0.0, Color::GREEN);
+        let rect = aabb.get_rect(transform);
+        draw_rect_colored(&mut *lines, rect, 0.0, Color::GREEN);
     }
+}
+
+fn draw_rect_colored(
+    lines: &mut DebugLines,
+    Rect { min, max }: Rect,
+    duration: f32,
+    color: Color,
+) {
+    let top_left = min.extend(0.0);
+    let top_right = Vec3::new(max.x, min.y, 0.0);
+    let bottom_left = Vec3::new(min.x, max.y, 0.0);
+    let bottom_right = max.extend(0.0);
+
+    lines.line_colored(top_left, top_right, duration, color);
+    lines.line_colored(top_right, bottom_right, duration, color);
+    lines.line_colored(bottom_right, bottom_left, duration, color);
+    lines.line_colored(bottom_left, top_left, duration, color);
 }
 
 pub fn spawn_level(
@@ -226,6 +233,7 @@ pub fn spawn_level(
                 ..default()
             })
             .insert(Wall)
+            .insert(DrawAabb)
             .insert(Aabb::StaticAabb {
                 scale: &WALL_TILE_SIZE,
             });
@@ -234,8 +242,8 @@ pub fn spawn_level(
 
     // guy
     commands
-        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)));
-    // .insert(DrawAabb);
+        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
+        .insert(DrawAabb);
 
     let level1 = make_level_1();
     add_level_walls(commands, &level1);

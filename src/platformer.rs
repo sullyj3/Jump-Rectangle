@@ -2,7 +2,10 @@
 
 use bevy::{
     prelude::*,
-    sprite::collide_aabb::{collide, Collision},
+    sprite::{
+        collide_aabb::{collide, Collision},
+        Rect,
+    },
     // input::keyboard::KeyboardInput,
     // input::gamepad::*,
 };
@@ -93,6 +96,19 @@ impl Aabb {
     pub fn new_static(scale: &'static Vec2) -> Self {
         Self::StaticAabb { scale }
     }
+
+    // Get the scale of the bounding box. We need the transform in case the Aabb is
+    // TransformScaleAabb
+    pub fn get_scale(&self, transform: &Transform) -> Vec2 {
+        match self {
+            Aabb::StaticAabb { scale: &scale } => scale,
+            Aabb::TransformScaleAabb => transform.scale.truncate(),
+        }
+    }
+
+    // pub fn get_rect(&self) -> Rect {
+    //     unimplemented!()
+    // }
 }
 
 impl Default for Aabb {
@@ -259,20 +275,12 @@ pub fn guy_collision_system(
     let (mut guy_physics, mut guy_transform, &guy_aabb, mut jump_state) =
         guy_query.single_mut();
 
-    // TODO this can panic I think
-    let guy_size = match guy_aabb {
-        Aabb::StaticAabb { scale: &scale } => scale,
-        Aabb::TransformScaleAabb => guy_transform.scale.truncate(),
-    };
-
+    let guy_size = guy_aabb.get_scale(&*guy_transform);
     jump_state.on_ground = None;
     jump_state.coyote_timer.tick(time.delta());
 
     for (wall_transform, wall_aabb) in wall_query.iter() {
-        let wall_size: Vec2 = match wall_aabb {
-            Aabb::StaticAabb { scale: &scale } => scale,
-            Aabb::TransformScaleAabb => wall_transform.scale.truncate(),
-        };
+        let wall_size = wall_aabb.get_scale(wall_transform);
 
         let collision = collide(
             wall_transform.translation,

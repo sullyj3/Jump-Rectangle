@@ -6,5 +6,5 @@ pub struct PhysicsObject {
     pub old_position: Vec3,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Gravity;

@@ -200,17 +200,14 @@ pub fn spawn_level(
             .insert(Wall)
             .insert(Aabb {
                 scale: &WALL_TILE_SIZE,
-            })
-            .insert(DrawAabb);
+            });
+        // .insert(DrawAabb);
     }
 
     // guy
     commands
-        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
-        // todo Gravity should be in guy bundle
-        // .insert(Gravity)
-        .insert(CanFly)
-        .insert(DrawAabb);
+        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)));
+    // .insert(DrawAabb);
 
     // let level1 = make_level_1();
     // add_level_walls(commands, &level1);

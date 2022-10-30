@@ -11,6 +11,7 @@ use bevy::{
 };
 use bevy_prototype_debug_lines::*;
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
+use rand::prelude::*;
 
 use crate::{
     guy::*,
@@ -237,18 +238,26 @@ pub fn spawn_level(
     // sort of data structure, such that it can be validated first. That way we can abort and
     // recover without having already spawned half the level
     // Could use something like mapMaybe { RED => Some(WallTileBundle); BLACK => Some(GuyBundle); _ => None }
-    for (x, y, p) in level_image.enumerate_pixels() {
-        debug!("iterating level 1 pixels: ({:?}, {:?}, {:?})", x, y, p);
-
+    for (x, y, pixel) in level_image.enumerate_pixels() {
         // -y because image coordinates treat down as positive y direction
         let translation =
             Vec3::new((x * tile_width) as f32, -1.0 * (y * tile_width) as f32, 0.0);
-        match *p {
+        match *pixel {
             BLACK => {
                 // Black represents a wall tile
                 // TODO extract this to a new custom bundle
+
+                let mut rng = rand::thread_rng();
+
+                // chosen by fair dice roll, guaranteed random
+                const N_TILES: usize = 20 * 9;
+                let random_index: usize = rng.gen_range(0..N_TILES);
                 commands
                     .spawn_bundle(SpriteSheetBundle {
+                        sprite: TextureAtlasSprite {
+                            index: random_index,
+                            ..Default::default()
+                        },
                         transform: Transform {
                             translation,
                             ..default()

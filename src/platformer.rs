@@ -10,6 +10,7 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
+use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 
 use crate::{
     guy::*,
@@ -151,7 +152,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // cameras
     commands.spawn_bundle(Camera2dBundle {
         projection: OrthographicProjection {
-            scale: 0.65,
+            scale: 0.85,
             ..Default::default()
         },
         ..Default::default()
@@ -210,6 +211,7 @@ pub fn spawn_level(
     commands: &mut Commands,
     character_texture_atlas_handle: Handle<TextureAtlas>,
     tile_texture_atlas_handle: Handle<TextureAtlas>,
+    level_image: DynamicImage,
 ) {
     info!("spawning level");
 
@@ -219,35 +221,65 @@ pub fn spawn_level(
         ..default()
     });
 
-    let tile_width = 18;
-    for i in 0..10 {
-        let translation = Vec3::new(-280.0 + (i * tile_width) as f32, -220.0, 0.0);
+    let level_image: &RgbaImage = level_image
+        .as_rgba8()
+        .expect("level1.png could not be converted to rgba8");
+    debug!("{:?}", level_image.get_pixel(0, 0));
 
-        const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
-        commands
-            .spawn_bundle(SpriteSheetBundle {
-                transform: Transform {
-                    translation,
-                    ..default()
-                },
-                texture_atlas: tile_texture_atlas_handle.clone(),
-                ..default()
-            })
-            .insert(Wall)
-            .insert(DrawAabb)
-            .insert(Aabb::StaticAabb {
-                scale: &WALL_TILE_SIZE,
-            });
-        // .insert(DrawAabb);
+    const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
+    const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
+
+    let tile_width = 18;
+    const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
+    let mut player_count = 0;
+
+    // TODO rather than spawning entities directly, it's probably better to parse the image to some
+    // sort of data structure, such that it can be validated first. That way we can abort and
+    // recover without having already spawned half the level
+    // Could use something like mapMaybe { RED => Some(WallTileBundle); BLACK => Some(GuyBundle); _ => None }
+    for (x, y, p) in level_image.enumerate_pixels() {
+        debug!("iterating level 1 pixels: ({:?}, {:?}, {:?})", x, y, p);
+
+        // -y because image coordinates treat down as positive y direction
+        let translation =
+            Vec3::new((x * tile_width) as f32, -1.0 * (y * tile_width) as f32, 0.0);
+        match *p {
+            BLACK => {
+                // Black represents a wall tile
+                // TODO extract this to a new custom bundle
+                commands
+                    .spawn_bundle(SpriteSheetBundle {
+                        transform: Transform {
+                            translation,
+                            ..default()
+                        },
+                        texture_atlas: tile_texture_atlas_handle.clone(),
+                        ..default()
+                    })
+                    .insert(Wall)
+                    .insert(DrawAabb)
+                    .insert(Aabb::StaticAabb {
+                        scale: &WALL_TILE_SIZE,
+                    });
+            }
+            RED => {
+                // red represents the player
+                // TODO somehow verify that the player is unique in the level
+                commands
+                    .spawn_bundle(GuyBundle::with_translation(translation))
+                    .insert(DrawAabb);
+                player_count += 1;
+            }
+            _ => continue,
+        }
     }
 
-    // guy
-    commands
-        .spawn_bundle(GuyBundle::with_translation(Vec3::new(-260.0, -130.0, 0.0)))
-        .insert(DrawAabb);
+    if player_count != 1 {
+        panic!("player count is {:?}", player_count);
+    }
 
-    let level1 = make_level_1();
-    add_level_walls(commands, &level1);
+    // let level1 = make_level_1();
+    // add_level_walls(commands, &level1);
 }
 
 pub fn physics_system(
@@ -340,7 +372,11 @@ pub fn move_camera(
     mut camera: Query<&mut Transform, (With<Camera>, Without<Guy>)>,
     player: Query<&Transform, (With<Guy>, Without<Camera>)>,
 ) {
-    let guy_pos: Vec3 = player.single().translation;
+    let guy_pos = if let Ok(player) = player.get_single() {
+        player.translation
+    } else {
+        return;
+    };
 
     for mut transform in camera.iter_mut() {
         let camera_pos: Vec3 = transform.translation;

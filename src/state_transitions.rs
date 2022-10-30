@@ -1,6 +1,6 @@
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
-use image::{DynamicImage, RgbaImage};
+use image::DynamicImage;
 
 pub fn enter_paused(
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
@@ -22,7 +22,7 @@ pub fn exit_menu(
     mut commands: Commands,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
-    images: Res<Assets<Image>>,
+    // images: Res<Assets<Image>>,
 ) {
     debug!("starting game");
 

@@ -10,7 +10,7 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
-use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
+use image::{DynamicImage, Rgba, RgbaImage};
 use rand::prelude::*;
 
 use crate::{
@@ -21,65 +21,65 @@ use crate::{
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 
-pub struct Level(Vec<Transform>);
+// pub struct Level(Vec<Transform>);
 
-pub fn make_level_1() -> Level {
-    let wall_thickness = 10.0;
-    let bounds = Vec2::new(900.0, 600.0);
+// pub fn make_level_1() -> Level {
+//     let wall_thickness = 10.0;
+//     let bounds = Vec2::new(900.0, 600.0);
 
-    Level(vec![
-        // left
-        Transform {
-            translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
-            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // right
-        Transform {
-            translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
-            scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // bottom
-        Transform {
-            translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
-            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // top
-        Transform {
-            translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
-            scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
-            ..Default::default()
-        },
-        // platforms
-        // Transform {
-        //     translation: Vec3::new(-280.0, -220.0, 0.0),
-        //     scale: Vec3::new(50.0, wall_thickness, 1.0),
-        //     ..Default::default()
-        // },
-        // Transform {
-        //     translation: Vec3::new(-160.0, -200.0, 0.0),
-        //     scale: Vec3::new(50.0, wall_thickness, 1.0),
-        //     ..Default::default()
-        // },
-        // Transform {
-        //     translation: Vec3::new(-100.0, -180.0, 0.0),
-        //     scale: Vec3::new(90.0, wall_thickness, 1.0),
-        //     ..Default::default()
-        // },
-        // Transform {
-        //     translation: Vec3::new(60., -200.0, 0.0),
-        //     scale: Vec3::new(50.0, wall_thickness, 1.0),
-        //     ..Default::default()
-        // },
-        // Transform {
-        //     translation: Vec3::new(160., -220.0, 0.0),
-        //     scale: Vec3::new(50.0, wall_thickness, 1.0),
-        //     ..Default::default()
-        // },
-    ])
-}
+//     Level(vec![
+//         // left
+//         Transform {
+//             translation: Vec3::new(-bounds.x / 2.0, 0.0, 0.0),
+//             scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // right
+//         Transform {
+//             translation: Vec3::new(bounds.x / 2.0, 0.0, 0.0),
+//             scale: Vec3::new(wall_thickness, bounds.y + wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // bottom
+//         Transform {
+//             translation: Vec3::new(0.0, -bounds.y / 2.0, 0.0),
+//             scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // top
+//         Transform {
+//             translation: Vec3::new(0.0, bounds.y / 2.0, 0.0),
+//             scale: Vec3::new(bounds.x + wall_thickness, wall_thickness, 1.0),
+//             ..Default::default()
+//         },
+//         // platforms
+//         // Transform {
+//         //     translation: Vec3::new(-280.0, -220.0, 0.0),
+//         //     scale: Vec3::new(50.0, wall_thickness, 1.0),
+//         //     ..Default::default()
+//         // },
+//         // Transform {
+//         //     translation: Vec3::new(-160.0, -200.0, 0.0),
+//         //     scale: Vec3::new(50.0, wall_thickness, 1.0),
+//         //     ..Default::default()
+//         // },
+//         // Transform {
+//         //     translation: Vec3::new(-100.0, -180.0, 0.0),
+//         //     scale: Vec3::new(90.0, wall_thickness, 1.0),
+//         //     ..Default::default()
+//         // },
+//         // Transform {
+//         //     translation: Vec3::new(60., -200.0, 0.0),
+//         //     scale: Vec3::new(50.0, wall_thickness, 1.0),
+//         //     ..Default::default()
+//         // },
+//         // Transform {
+//         //     translation: Vec3::new(160., -220.0, 0.0),
+//         //     scale: Vec3::new(50.0, wall_thickness, 1.0),
+//         //     ..Default::default()
+//         // },
+//     ])
+// }
 
 #[derive(Component)]
 pub struct Wall;
@@ -94,9 +94,9 @@ pub enum Aabb {
 }
 
 impl Aabb {
-    pub fn new_static(scale: &'static Vec2) -> Self {
-        Self::StaticAabb { scale }
-    }
+    // pub fn new_static(scale: &'static Vec2) -> Self {
+    //     Self::StaticAabb { scale }
+    // }
 
     // Get the scale of the bounding box. We need the transform in case the Aabb is
     // TransformScaleAabb
@@ -126,23 +126,23 @@ impl Default for Aabb {
     }
 }
 
-fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
-    let wall_color = Color::rgb(0.8, 0.8, 0.8);
-    for transform in level {
-        commands
-            .spawn_bundle(SpriteBundle {
-                transform: *transform,
-                sprite: Sprite {
-                    color: wall_color,
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(Wall)
-            .insert(DrawAabb)
-            .insert(Aabb::default());
-    }
-}
+// fn add_level_walls(commands: &mut Commands, Level(level): &Level) {
+//     let wall_color = Color::rgb(0.8, 0.8, 0.8);
+//     for transform in level {
+//         commands
+//             .spawn_bundle(SpriteBundle {
+//                 transform: *transform,
+//                 sprite: Sprite {
+//                     color: wall_color,
+//                     ..Default::default()
+//                 },
+//                 ..Default::default()
+//             })
+//             .insert(Wall)
+//             .insert(DrawAabb)
+//             .insert(Aabb::default());
+//     }
+// }
 
 #[derive(Component, PartialEq, Eq)]
 pub struct PauseMessage;
@@ -187,7 +187,7 @@ pub fn draw_aabbs(
 ) {
     for (transform, aabb) in q.iter() {
         let rect = aabb.get_rect(transform);
-        draw_rect_colored(&mut *lines, rect, 0.0, Color::GREEN);
+        draw_rect_colored(&mut lines, rect, 0.0, Color::GREEN);
     }
 }
 
@@ -325,7 +325,7 @@ pub fn guy_collision_system(
     let (mut guy_physics, mut guy_transform, &guy_aabb, mut jump_state) =
         guy_query.single_mut();
 
-    let guy_size = guy_aabb.get_scale(&*guy_transform);
+    let guy_size = guy_aabb.get_scale(&guy_transform);
 
     // assume we're in the air until proven otherwise
     jump_state.on_ground = None;

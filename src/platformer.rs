@@ -206,36 +206,18 @@ fn draw_rect_colored(
     lines.line_colored(bottom_left, top_left, duration, color);
 }
 
-pub fn spawn_level(
-    commands: &mut Commands,
-    character_texture_atlas_handle: Handle<TextureAtlas>,
-    tile_texture_atlas_handle: Handle<TextureAtlas>,
-    level_image: DynamicImage,
-) {
-    enum LevelContents {
-        Player,
-        Tile,
-    }
-    pub struct Level(Vec<(LevelContents, Vec3)>);
+#[derive(Debug)]
+enum LevelParseError {
+    WrongNumberPlayers(i32),
+}
 
-    info!("spawning level");
+const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
 
-    //texture
-    commands.spawn_bundle(SpriteSheetBundle {
-        texture_atlas: character_texture_atlas_handle,
-        ..default()
-    });
-
-    let level_image: &RgbaImage = level_image
-        .as_rgba8()
-        .expect("level2.png could not be converted to rgba8");
-    debug!("{:?}", level_image.get_pixel(0, 0));
-
+fn parse_level_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> {
     const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
     const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
 
     let tile_width = 18;
-    const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
     let mut player_count = 0;
 
     let level: Level = Level(
@@ -263,9 +245,43 @@ pub fn spawn_level(
             .collect(),
     );
 
-    if player_count != 1 {
-        panic!("player count is {:?}", player_count);
-    }
+    return if player_count != 1 {
+        Err(LevelParseError::WrongNumberPlayers(player_count))
+    } else {
+        Ok(level)
+    };
+}
+
+enum LevelContents {
+    Player,
+    Tile,
+}
+pub struct Level(Vec<(LevelContents, Vec3)>);
+
+pub fn spawn_level(
+    commands: &mut Commands,
+    character_texture_atlas_handle: Handle<TextureAtlas>,
+    tile_texture_atlas_handle: Handle<TextureAtlas>,
+    level_image: DynamicImage,
+) {
+    info!("spawning level");
+
+    //texture
+    commands.spawn_bundle(SpriteSheetBundle {
+        texture_atlas: character_texture_atlas_handle,
+        ..default()
+    });
+
+    let level_image: &RgbaImage = level_image
+        .as_rgba8()
+        .expect("level2.png could not be converted to rgba8");
+
+    let level = match parse_level_image(level_image) {
+        Ok(level) => level,
+        Err(e @ LevelParseError::WrongNumberPlayers(_)) => {
+            panic!("Wrong number of players while parsing level image: {:?}", e)
+        }
+    };
 
     for (level_contents_type, translation) in level.0 {
         match level_contents_type {

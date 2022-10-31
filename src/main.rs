@@ -36,7 +36,7 @@ fn main() {
         .add_plugin(DebugLinesPlugin::default())
         .insert_resource(ActionState::<Action>::default())
         .insert_resource(make_input_map())
-        .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
+        .insert_resource(ClearColor(Color::rgb(0.7, 0.8, 0.9)))
         .add_fixed_timestep(Duration::from_secs_f32(TIME_STEP), "input_timestep")
         // for now this needs to run in all states, to handle Start press
         // we should factor it into an ingame and out of game system

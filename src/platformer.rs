@@ -238,25 +238,30 @@ pub fn spawn_level(
     const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
     let mut player_count = 0;
 
-    let mut level: Level = Level(Vec::with_capacity(64));
+    let level: Level = Level(
+        level_image
+            .enumerate_pixels()
+            .filter_map(|(x, y, pixel)| {
+                // -y because image coordinates treat down as positive y direction
+                let translation = Vec3::new(
+                    (x * tile_width) as f32,
+                    -1.0 * (y * tile_width) as f32,
+                    0.0,
+                );
+                match *pixel {
+                    // Black represents a wall tile
+                    BLACK => Some((LevelContents::Tile, translation)),
 
-    for (x, y, pixel) in level_image.enumerate_pixels() {
-        // -y because image coordinates treat down as positive y direction
-        let translation =
-            Vec3::new((x * tile_width) as f32, -1.0 * (y * tile_width) as f32, 0.0);
-        match *pixel {
-            BLACK => {
-                // Black represents a wall tile
-                level.0.push((LevelContents::Tile, translation));
-            }
-            RED => {
-                // red represents the player
-                player_count += 1;
-                level.0.push((LevelContents::Player, translation));
-            }
-            _ => continue,
-        }
-    }
+                    // red represents the player
+                    RED => {
+                        player_count += 1;
+                        Some((LevelContents::Player, translation))
+                    }
+                    _ => None,
+                }
+            })
+            .collect(),
+    );
 
     if player_count != 1 {
         panic!("player count is {:?}", player_count);

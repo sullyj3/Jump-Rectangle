@@ -26,6 +26,11 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(WindowDescriptor {
+            width: 960.0,
+            height: 540.0,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(DebugLinesPlugin::default())

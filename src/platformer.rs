@@ -249,9 +249,15 @@ pub fn spawn_level(
 
                 let mut rng = rand::thread_rng();
 
+                let mut grass_dirt_indices: [usize; 8] = [0; 8];
+                for (i, tile_idx) in (0..4).chain(20..24).enumerate() {
+                    grass_dirt_indices[i] = tile_idx;
+                }
+
+                // const N_TILES: usize = 20 * 9;
                 // chosen by fair dice roll, guaranteed random
-                const N_TILES: usize = 20 * 9;
-                let random_index: usize = rng.gen_range(0..N_TILES);
+                let random_index: usize =
+                    *grass_dirt_indices.choose(&mut rng).unwrap();
                 commands
                     .spawn_bundle(SpriteSheetBundle {
                         sprite: TextureAtlasSprite {

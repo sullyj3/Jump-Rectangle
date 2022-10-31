@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+use bevy::app::AppExit;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -13,6 +14,7 @@ pub enum Action {
     Move,
     Jump,
     Start,
+    Select,
     Debug,
 }
 
@@ -32,6 +34,7 @@ pub fn make_input_map() -> InputMap<Action> {
         (GamepadButtonType::North, Action::Debug),
         (GamepadButtonType::South, Action::Jump),
         (GamepadButtonType::Start, Action::Start),
+        (GamepadButtonType::Select, Action::Select),
     ]);
     input_map.insert(VirtualDPad::dpad(), Action::Move);
     input_map.insert(DualAxis::left_stick(), Action::Move);
@@ -50,7 +53,13 @@ pub fn input_system(
     )>,
     mut commands: Commands,
     state: Res<CurrentState<AppState>>,
+    mut exit: EventWriter<AppExit>,
 ) {
+    // Quit if start+select
+    if action_state.pressed(Action::Select) && action_state.pressed(Action::Start) {
+        exit.send(AppExit);
+    }
+
     // Start button state transitions
     if action_state.just_pressed(Action::Start) {
         match state.0 {

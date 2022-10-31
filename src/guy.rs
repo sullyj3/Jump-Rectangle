@@ -128,6 +128,10 @@ impl JumpState {
     }
 }
 
+// fn index_2d(width: usize, x: usize, y: usize) -> usize {
+//     width * y + x
+// }
+
 #[derive(Component)]
 pub struct Guy {
     pub h_speed: f32,

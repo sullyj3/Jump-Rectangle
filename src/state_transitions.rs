@@ -1,6 +1,6 @@
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
-use image::DynamicImage;
+use image::{DynamicImage, Rgba, RgbaImage};
 
 pub fn enter_paused(
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
@@ -26,16 +26,6 @@ pub fn exit_menu(
 ) {
     debug!("starting game");
 
-    let character_texture_handle = asset_server.load("characters_packed.png");
-    let character_texture_atlas = TextureAtlas::from_grid(
-        character_texture_handle,
-        Vec2::new(24.0, 24.0),
-        9,
-        3,
-    );
-    let character_texture_atlas_handle: Handle<TextureAtlas> =
-        texture_atlases.add(character_texture_atlas);
-
     let tile_texture_handle = asset_server.load("tiles_packed.png");
     let tile_texture_atlas =
         TextureAtlas::from_grid(tile_texture_handle, Vec2::new(18.0, 18.0), 20, 9);
@@ -48,35 +38,70 @@ pub fn exit_menu(
         .decode()
         .expect("decoding level2.png failed");
 
-    // let level_image_handle: Handle<Image> = asset_server.load("level1.png");
-    // // TODO Hack
-    // // block until loaded
-    // let level_image: &Image = loop {
-    //     use bevy::asset::LoadState;
-    //     match asset_server.get_load_state(level_image_handle.clone()) {
-    //         LoadState::Loading => continue,
-    //         LoadState::Loaded => break images.get(&level_image_handle).unwrap(),
-    //         LoadState::Failed => {
-    //             info!("loading level failed! Exiting.");
-    //             std::process::exit(1);
-    //         }
-    //         ls @ LoadState::NotLoaded => {
-    //             error!("loadstate is: {:?}", ls);
-    //             unreachable!()
-    //         },
-    //         ls => {
-    //             error!("loadstate is: {:?}", ls);
-    //             unreachable!()
-    //         }
-    //     }
-    // };
+    let level_image: &RgbaImage = level_image
+        .as_rgba8()
+        .expect("level2.png could not be converted to rgba8");
 
-    spawn_level(
-        &mut commands,
-        character_texture_atlas_handle,
-        tile_texture_atlas_handle,
-        level_image,
+    let level = match parse_level_image(level_image) {
+        Ok(level) => level,
+        Err(e @ LevelParseError::WrongNumberPlayers(_)) => {
+            panic!("Wrong number of players while parsing level image: {:?}", e)
+        }
+    };
+
+    spawn_level(&mut commands, tile_texture_atlas_handle, level);
+}
+
+pub enum LevelContents {
+    Player,
+    Tile,
+}
+pub struct Level(pub Vec<(LevelContents, Vec3)>);
+
+#[derive(Debug)]
+enum LevelParseError {
+    WrongNumberPlayers(i32),
+}
+
+pub const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
+
+fn parse_level_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> {
+    const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
+    const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
+
+    let tile_width = 18;
+    let mut player_count = 0;
+
+    let level: Level = Level(
+        level_image
+            .enumerate_pixels()
+            .filter_map(|(x, y, pixel)| {
+                // -y because image coordinates treat down as positive y direction
+                let translation = Vec3::new(
+                    (x * tile_width) as f32,
+                    -1.0 * (y * tile_width) as f32,
+                    0.0,
+                );
+                match *pixel {
+                    // Black represents a wall tile
+                    BLACK => Some((LevelContents::Tile, translation)),
+
+                    // red represents the player
+                    RED => {
+                        player_count += 1;
+                        Some((LevelContents::Player, translation))
+                    }
+                    _ => None,
+                }
+            })
+            .collect(),
     );
+
+    if player_count != 1 {
+        Err(LevelParseError::WrongNumberPlayers(player_count))
+    } else {
+        Ok(level)
+    }
 }
 
 // fn convert_image(images: Res<Assets<Image>>) {

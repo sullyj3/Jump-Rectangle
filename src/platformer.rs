@@ -10,12 +10,12 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
-use image::{DynamicImage, Rgba, RgbaImage};
 use rand::prelude::*;
 
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
+    state_transitions::{Level, LevelContents, WALL_TILE_SIZE},
 };
 
 pub const TIME_STEP: f32 = 1. / 60.0;
@@ -206,82 +206,12 @@ fn draw_rect_colored(
     lines.line_colored(bottom_left, top_left, duration, color);
 }
 
-#[derive(Debug)]
-enum LevelParseError {
-    WrongNumberPlayers(i32),
-}
-
-const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
-
-fn parse_level_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> {
-    const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
-    const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
-
-    let tile_width = 18;
-    let mut player_count = 0;
-
-    let level: Level = Level(
-        level_image
-            .enumerate_pixels()
-            .filter_map(|(x, y, pixel)| {
-                // -y because image coordinates treat down as positive y direction
-                let translation = Vec3::new(
-                    (x * tile_width) as f32,
-                    -1.0 * (y * tile_width) as f32,
-                    0.0,
-                );
-                match *pixel {
-                    // Black represents a wall tile
-                    BLACK => Some((LevelContents::Tile, translation)),
-
-                    // red represents the player
-                    RED => {
-                        player_count += 1;
-                        Some((LevelContents::Player, translation))
-                    }
-                    _ => None,
-                }
-            })
-            .collect(),
-    );
-
-    return if player_count != 1 {
-        Err(LevelParseError::WrongNumberPlayers(player_count))
-    } else {
-        Ok(level)
-    };
-}
-
-enum LevelContents {
-    Player,
-    Tile,
-}
-pub struct Level(Vec<(LevelContents, Vec3)>);
-
 pub fn spawn_level(
     commands: &mut Commands,
-    character_texture_atlas_handle: Handle<TextureAtlas>,
     tile_texture_atlas_handle: Handle<TextureAtlas>,
-    level_image: DynamicImage,
+    level: Level,
 ) {
-    info!("spawning level");
-
-    //texture
-    commands.spawn_bundle(SpriteSheetBundle {
-        texture_atlas: character_texture_atlas_handle,
-        ..default()
-    });
-
-    let level_image: &RgbaImage = level_image
-        .as_rgba8()
-        .expect("level2.png could not be converted to rgba8");
-
-    let level = match parse_level_image(level_image) {
-        Ok(level) => level,
-        Err(e @ LevelParseError::WrongNumberPlayers(_)) => {
-            panic!("Wrong number of players while parsing level image: {:?}", e)
-        }
-    };
+    debug!("spawning level");
 
     for (level_contents_type, translation) in level.0 {
         match level_contents_type {

@@ -42,12 +42,11 @@ pub fn exit_menu(
         .as_rgba8()
         .expect("level2.png could not be converted to rgba8");
 
-    let level = match parse_level_image(level_image) {
-        Ok(level) => level,
-        Err(e @ LevelParseError::WrongNumberPlayers(_)) => {
+    let level = parse_level_image(level_image).unwrap_or_else(|e| match e {
+        LevelParseError::WrongNumberPlayers(_) => {
             panic!("Wrong number of players while parsing level image: {:?}", e)
         }
-    };
+    });
 
     spawn_level(&mut commands, tile_texture_atlas_handle, level);
 }

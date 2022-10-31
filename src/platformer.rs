@@ -21,8 +21,6 @@ use crate::{
 pub const TIME_STEP: f32 = 1. / 60.0;
 pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 
-// pub struct Level(Vec<Transform>);
-
 // pub fn make_level_1() -> Level {
 //     let wall_thickness = 10.0;
 //     let bounds = Vec2::new(900.0, 600.0);
@@ -214,6 +212,12 @@ pub fn spawn_level(
     tile_texture_atlas_handle: Handle<TextureAtlas>,
     level_image: DynamicImage,
 ) {
+    enum LevelContents {
+        Player,
+        Tile,
+    }
+    pub struct Level(Vec<(LevelContents, Vec3)>);
+
     info!("spawning level");
 
     //texture
@@ -234,10 +238,8 @@ pub fn spawn_level(
     const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
     let mut player_count = 0;
 
-    // TODO rather than spawning entities directly, it's probably better to parse the image to some
-    // sort of data structure, such that it can be validated first. That way we can abort and
-    // recover without having already spawned half the level
-    // Could use something like mapMaybe { RED => Some(WallTileBundle); BLACK => Some(GuyBundle); _ => None }
+    let mut level: Level = Level(Vec::with_capacity(64));
+
     for (x, y, pixel) in level_image.enumerate_pixels() {
         // -y because image coordinates treat down as positive y direction
         let translation =
@@ -245,6 +247,29 @@ pub fn spawn_level(
         match *pixel {
             BLACK => {
                 // Black represents a wall tile
+                level.0.push((LevelContents::Tile, translation));
+            }
+            RED => {
+                // red represents the player
+                player_count += 1;
+                level.0.push((LevelContents::Player, translation));
+            }
+            _ => continue,
+        }
+    }
+
+    if player_count != 1 {
+        panic!("player count is {:?}", player_count);
+    }
+
+    for (level_contents_type, translation) in level.0 {
+        match level_contents_type {
+            LevelContents::Player => {
+                commands
+                    .spawn_bundle(GuyBundle::with_translation(translation))
+                    .insert(DrawAabb);
+            }
+            LevelContents::Tile => {
                 // TODO extract this to a new custom bundle
 
                 let mut rng = rand::thread_rng();
@@ -277,20 +302,7 @@ pub fn spawn_level(
                         scale: &WALL_TILE_SIZE,
                     });
             }
-            RED => {
-                // red represents the player
-                // TODO somehow verify that the player is unique in the level
-                commands
-                    .spawn_bundle(GuyBundle::with_translation(translation))
-                    .insert(DrawAabb);
-                player_count += 1;
-            }
-            _ => continue,
         }
-    }
-
-    if player_count != 1 {
-        panic!("player count is {:?}", player_count);
     }
 
     // let level1 = make_level_1();

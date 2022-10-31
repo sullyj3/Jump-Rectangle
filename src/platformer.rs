@@ -213,7 +213,11 @@ pub fn spawn_level(
 ) {
     debug!("spawning level");
 
-    for (level_contents_type, translation) in level.0 {
+    for (UVec2 { x, y }, level_contents_type) in level.0 {
+        // -y because image coordinates treat down as positive y direction
+        const TILE_WIDTH: u32 = 18;
+        let translation =
+            Vec3::new((x * TILE_WIDTH) as f32, -1.0 * (y * TILE_WIDTH) as f32, 0.0);
         match level_contents_type {
             LevelContents::Player => {
                 commands

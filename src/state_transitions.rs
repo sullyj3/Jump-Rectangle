@@ -1,6 +1,7 @@
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
 use image::{DynamicImage, Rgba, RgbaImage};
+use std::collections::HashMap;
 
 pub fn enter_paused(
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
@@ -55,7 +56,7 @@ pub enum LevelContents {
     Player,
     Tile,
 }
-pub struct Level(pub Vec<(LevelContents, Vec3)>);
+pub struct Level(pub HashMap<UVec2, LevelContents>);
 
 #[derive(Debug)]
 enum LevelParseError {
@@ -68,27 +69,20 @@ fn parse_level_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> 
     const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
     const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
 
-    let tile_width = 18;
     let mut player_count = 0;
 
     let level: Level = Level(
         level_image
             .enumerate_pixels()
             .filter_map(|(x, y, pixel)| {
-                // -y because image coordinates treat down as positive y direction
-                let translation = Vec3::new(
-                    (x * tile_width) as f32,
-                    -1.0 * (y * tile_width) as f32,
-                    0.0,
-                );
                 match *pixel {
                     // Black represents a wall tile
-                    BLACK => Some((LevelContents::Tile, translation)),
+                    BLACK => Some((UVec2::new(x, y), LevelContents::Tile)),
 
                     // red represents the player
                     RED => {
                         player_count += 1;
-                        Some((LevelContents::Player, translation))
+                        Some((UVec2::new(x, y), LevelContents::Player))
                     }
                     _ => None,
                 }

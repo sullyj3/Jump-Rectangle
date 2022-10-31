@@ -4,9 +4,10 @@ mod physics_object;
 mod platformer;
 mod state_transitions;
 
-use bevy::prelude::*;
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::render::texture::ImageSettings;
 use bevy::utils::Duration;
+use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
 use bevy_prototype_debug_lines::*;
 use input::{input_system, make_input_map, Action};
 use iyes_loopless::{fixedtimestep::FixedTimestepStageLabel, prelude::*};
@@ -20,7 +21,7 @@ use state_transitions::*;
 fn main() {
     App::new()
         .insert_resource(bevy::log::LogSettings {
-            level: bevy::log::Level::DEBUG,
+            level: bevy::log::Level::INFO,
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())
@@ -30,6 +31,8 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(InputManagerPlugin::<Action>::default())
         .add_plugin(DebugLinesPlugin::default())
         .insert_resource(ActionState::<Action>::default())

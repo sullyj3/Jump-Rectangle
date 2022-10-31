@@ -43,10 +43,10 @@ pub fn exit_menu(
         texture_atlases.add(tile_texture_atlas);
 
     // TODO also hack, what if cwd is not project root?
-    let level_image: DynamicImage = image::io::Reader::open("assets/level1.png")
-        .expect("failed to open file assets/level1.png")
+    let level_image: DynamicImage = image::io::Reader::open("assets/level2.png")
+        .expect("failed to open file assets/level2.png")
         .decode()
-        .expect("decoding level1.png failed");
+        .expect("decoding level2.png failed");
 
     // let level_image_handle: Handle<Image> = asset_server.load("level1.png");
     // // TODO Hack

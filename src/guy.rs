@@ -115,7 +115,8 @@ impl JumpState {
         physics: &mut PhysicsObject,
         guy_transform: &mut Transform,
     ) {
-        physics.velocity.y = 750.0;
+        const JUMP_SPEED: f32 = 600.0;
+        physics.velocity.y = JUMP_SPEED;
         guy_transform.scale = GUY_JUMPING_SIZE;
         self.on_ground = None;
         self.coyote_timer.jump();
@@ -149,7 +150,7 @@ pub const GUY_JUMPING_SIZE: Vec3 = Vec3::new(14.0, 20.0, 0.0);
 impl Default for GuyBundle {
     fn default() -> Self {
         GuyBundle {
-            guy: Guy { h_speed: 300. },
+            guy: Guy { h_speed: 180. },
             sprite: SpriteBundle {
                 transform: Transform {
                     scale: GUY_SIZE.extend(0.0),

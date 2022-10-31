@@ -153,7 +153,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // cameras
     commands.spawn_bundle(Camera2dBundle {
         projection: OrthographicProjection {
-            scale: 0.85,
+            scale: 0.35,
             ..Default::default()
         },
         ..Default::default()
@@ -224,7 +224,7 @@ pub fn spawn_level(
 
     let level_image: &RgbaImage = level_image
         .as_rgba8()
-        .expect("level1.png could not be converted to rgba8");
+        .expect("level2.png could not be converted to rgba8");
     debug!("{:?}", level_image.get_pixel(0, 0));
 
     const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);

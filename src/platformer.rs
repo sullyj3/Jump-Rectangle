@@ -10,7 +10,7 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
-use rand::prelude::*;
+// use rand::prelude::*;
 
 use crate::{
     guy::*,
@@ -206,16 +206,86 @@ fn draw_rect_colored(
     lines.line_colored(bottom_left, top_left, duration, color);
 }
 
+///        ┌──────┐
+///        │      │
+///        │ 0001 │
+///        │      │
+/// ┌──────┼──────┼──────┐
+/// │      │      │      │
+/// │ 0010 │      │ 0100 │
+/// │      │      │      │
+/// └──────┼──────┼──────┘
+///        │      │
+///        │ 1000 │
+///        │      │
+///        └──────┘
+///
+/// In order to decide which tile to render, tiles need to be classified
+/// based on whether they have neighbours on each of the four sides.
+/// This can be represented with 4 bits
+fn classify_autotile(position: &IVec2, level: &Level) -> usize {
+    let above = *position - IVec2::Y;
+    let left = *position - IVec2::X;
+    let right = *position + IVec2::X;
+    let below = *position + IVec2::Y;
+
+    let mut ret = 0b0000;
+    if let Some(LevelContents::Tile) = level.0.get(&above) {
+        ret |= 0b0001;
+    }
+    if let Some(LevelContents::Tile) = level.0.get(&left) {
+        ret |= 0b0010;
+    }
+    if let Some(LevelContents::Tile) = level.0.get(&right) {
+        ret |= 0b0100;
+    }
+    if let Some(LevelContents::Tile) = level.0.get(&below) {
+        ret |= 0b1000;
+    }
+
+    return ret;
+}
+
+fn index2d_to_1d(x: usize, y: usize, width: usize) -> usize {
+    y * width + x
+}
+
+// this is totally contingent and specific to the spritesheet I'm using
+fn autotile_code_to_spritesheet_index(n: usize) -> usize {
+    match n {
+        0 => index2d_to_1d(0, 0, 20),
+        1 => index2d_to_1d(0, 7, 20),
+        2 => index2d_to_1d(3, 0, 20),
+        3 => index2d_to_1d(3, 7, 20),
+        4 => index2d_to_1d(1, 0, 20),
+        5 => index2d_to_1d(1, 7, 20),
+        6 => index2d_to_1d(2, 0, 20),
+        7 => index2d_to_1d(2, 7, 20),
+        8 => index2d_to_1d(0, 1, 20),
+        9 => index2d_to_1d(0, 6, 20),
+        10 => index2d_to_1d(3, 1, 20),
+        11 => index2d_to_1d(3, 6, 20),
+        12 => index2d_to_1d(1, 1, 20),
+        13 => index2d_to_1d(1, 6, 20),
+        14 => index2d_to_1d(2, 1, 20),
+        15 => index2d_to_1d(2, 6, 20),
+        _ => {
+            assert!(n <= 0b1111);
+            unreachable!();
+        }
+    }
+}
+
 pub fn spawn_level(
     commands: &mut Commands,
     tile_texture_atlas_handle: Handle<TextureAtlas>,
-    level: Level,
+    level: &Level,
 ) {
     debug!("spawning level");
 
-    for (UVec2 { x, y }, level_contents_type) in level.0 {
+    for (position @ IVec2 { x, y }, level_contents_type) in &level.0 {
         // -y because image coordinates treat down as positive y direction
-        const TILE_WIDTH: u32 = 18;
+        const TILE_WIDTH: i32 = 18;
         let translation =
             Vec3::new((x * TILE_WIDTH) as f32, -1.0 * (y * TILE_WIDTH) as f32, 0.0);
         match level_contents_type {
@@ -227,21 +297,25 @@ pub fn spawn_level(
             LevelContents::Tile => {
                 // TODO extract this to a new custom bundle
 
-                let mut rng = rand::thread_rng();
+                // let mut rng = rand::thread_rng();
 
-                let mut grass_dirt_indices: [usize; 8] = [0; 8];
-                for (i, tile_idx) in (0..4).chain(20..24).enumerate() {
-                    grass_dirt_indices[i] = tile_idx;
-                }
+                // let mut grass_dirt_indices: [usize; 8] = [0; 8];
+                // for (i, tile_idx) in (0..4).chain(20..24).enumerate() {
+                //     grass_dirt_indices[i] = tile_idx;
+                // }
 
-                // const N_TILES: usize = 20 * 9;
-                // chosen by fair dice roll, guaranteed random
-                let random_index: usize =
-                    *grass_dirt_indices.choose(&mut rng).unwrap();
+                // // const N_TILES: usize = 20 * 9;
+                // // chosen by fair dice roll, guaranteed random
+                // let random_index: usize =
+                //     *grass_dirt_indices.choose(&mut rng).unwrap();
+
+                let tile_index = autotile_code_to_spritesheet_index(
+                    classify_autotile(position, &level),
+                );
                 commands
                     .spawn_bundle(SpriteSheetBundle {
                         sprite: TextureAtlasSprite {
-                            index: random_index,
+                            index: tile_index,
                             ..Default::default()
                         },
                         transform: Transform {

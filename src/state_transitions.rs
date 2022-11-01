@@ -49,14 +49,14 @@ pub fn exit_menu(
         }
     });
 
-    spawn_level(&mut commands, tile_texture_atlas_handle, level);
+    spawn_level(&mut commands, tile_texture_atlas_handle, &level);
 }
 
 pub enum LevelContents {
     Player,
     Tile,
 }
-pub struct Level(pub HashMap<UVec2, LevelContents>);
+pub struct Level(pub HashMap<IVec2, LevelContents>);
 
 #[derive(Debug)]
 enum LevelParseError {
@@ -77,12 +77,14 @@ fn parse_level_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> 
             .filter_map(|(x, y, pixel)| {
                 match *pixel {
                     // Black represents a wall tile
-                    BLACK => Some((UVec2::new(x, y), LevelContents::Tile)),
+                    BLACK => {
+                        Some((IVec2::new(x as i32, y as i32), LevelContents::Tile))
+                    }
 
                     // red represents the player
                     RED => {
                         player_count += 1;
-                        Some((UVec2::new(x, y), LevelContents::Player))
+                        Some((IVec2::new(x as i32, y as i32), LevelContents::Player))
                     }
                     _ => None,
                 }

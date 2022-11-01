@@ -77,7 +77,7 @@ fn main() {
                 .after("guy_collision"),
         )
         .add_startup_system(setup)
-        .add_system(draw_aabbs)
+        // .add_system(draw_aabbs)
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
         .add_enter_system(AppState::Paused, enter_paused)

@@ -34,14 +34,14 @@ pub fn exit_menu(
         texture_atlases.add(tile_texture_atlas);
 
     // TODO also hack, what if cwd is not project root?
-    let level_image: DynamicImage = image::io::Reader::open("assets/level2.png")
-        .expect("failed to open file assets/level2.png")
+    let level_image: DynamicImage = image::io::Reader::open("assets/level3.png")
+        .expect("failed to open file assets/level3.png")
         .decode()
-        .expect("decoding level2.png failed");
+        .expect("decoding level3.png failed");
 
     let level_image: &RgbaImage = level_image
         .as_rgba8()
-        .expect("level2.png could not be converted to rgba8");
+        .expect("level3.png could not be converted to rgba8");
 
     let level = parse_level_image(level_image).unwrap_or_else(|e| match e {
         LevelParseError::WrongNumberPlayers(_) => {

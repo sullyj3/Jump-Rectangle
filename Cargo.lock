@@ -2629,6 +2629,7 @@ dependencies = [
  "bevy",
  "bevy_prototype_debug_lines",
  "glam_vector_components",
+ "glob",
  "image",
  "iyes_loopless",
  "leafwing-input-manager",

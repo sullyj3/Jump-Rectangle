@@ -21,7 +21,7 @@ use state_transitions::*;
 fn main() {
     App::new()
         .insert_resource(bevy::log::LogSettings {
-            level: bevy::log::Level::INFO,
+            level: bevy::log::Level::DEBUG,
             ..Default::default()
         })
         .insert_resource(ImageSettings::default_nearest())

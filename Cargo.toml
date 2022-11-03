@@ -16,6 +16,7 @@ opt-level = 3
 # remember to disable "dynamic" feature before release
 bevy = { version = "0.8", features = ["dynamic"] }
 leafwing-input-manager = "0.5.2"
+glob = "0.3.0"
 iyes_loopless = { git = "https://github.com/IyesGames/iyes_loopless.git" }
 bevy_prototype_debug_lines = "0.8"
 glam_vector_components = { git = "https://github.com/sullyj3/glam_vector_components" }

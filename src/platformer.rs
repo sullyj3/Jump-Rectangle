@@ -12,11 +12,11 @@ use bevy::{
 use bevy_prototype_debug_lines::*;
 // use rand::prelude::*;
 
+use crate::level::{Level, LevelContents, WALL_TILE_SIZE};
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
     portal::{Portal, PortalBundle},
-    state_transitions::{Level, LevelContents, WALL_TILE_SIZE},
 };
 
 pub const TIME_STEP: f32 = 1. / 60.0;
@@ -245,7 +245,7 @@ fn classify_autotile(position: &IVec2, level: &Level) -> usize {
         ret |= 0b1000;
     }
 
-    return ret;
+    ret
 }
 
 fn index2d_to_1d(x: usize, y: usize, width: usize) -> usize {
@@ -315,7 +315,7 @@ pub fn spawn_level(
                 debug!("spawning a tile at {:?}", translation);
 
                 let tile_index = autotile_code_to_spritesheet_index(
-                    classify_autotile(position, &level),
+                    classify_autotile(position, level),
                 );
                 commands
                     .spawn_bundle(SpriteSheetBundle {
@@ -397,7 +397,7 @@ pub fn guy_collision_system(
             guy_size,
         );
 
-        if let Some(_) = collision {
+        if collision.is_some() {
             info!("collided with portal");
         }
     }

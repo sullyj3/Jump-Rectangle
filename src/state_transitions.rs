@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use crate::guy::Guy;
 use crate::level::*;
 use crate::platformer::{spawn_level, AppState, PauseMessage};
@@ -47,7 +48,7 @@ pub fn exit_loading(
     loading_level: Res<LoadingLevel>,
 ) {
     // TODO move all this stuff into level.rs probably
-    let level: Level = Level::load(&*loading_level);
+    let level: Level = Level::load(&loading_level);
 
     let tile_texture_handle = asset_server.load("tiles_packed.png");
     let portal_image_handle: Handle<Image> = asset_server.load("portal.png");

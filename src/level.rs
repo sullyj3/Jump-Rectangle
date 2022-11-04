@@ -29,7 +29,7 @@ pub enum LoadingLevel {
 
 impl Level {
     pub fn load(to_load: &LoadingLevel) -> Self {
-        match &*to_load {
+        match to_load {
             LoadingLevel::Path(level_path) => {
                 // TODO also hack, what if cwd is not project root?
                 let level_image: DynamicImage = image::io::Reader::open(level_path)

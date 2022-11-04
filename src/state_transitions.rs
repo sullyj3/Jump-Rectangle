@@ -2,6 +2,7 @@
 use crate::guy::Guy;
 use crate::level::*;
 use crate::platformer::{spawn_level, AppState, PauseMessage};
+use bevy::ecs::query::WorldQuery;
 use bevy::prelude::*;
 use iyes_loopless::state::NextState;
 
@@ -21,19 +22,23 @@ pub fn exit_paused(
     pm_visibility.is_visible = false;
 }
 
-pub fn enter_loading(
-    to_despawn: Query<Entity, Or<(With<Guy>, With<Wall>, With<Portal>)>>,
+pub fn despawn_where<F: WorldQuery>(
+    to_despawn: Query<Entity, F>,
     mut commands: Commands,
 ) {
-    // despawn the level
-    // TODO this seems brittle as hell
-    //   do I have to remember to the marker struct of every single thing
-    //   that can be in a level? There's got to be a better way
-    //   need to investigate parent/child stuff
-    for e in to_despawn.iter() {
+    to_despawn.for_each(|e| {
         commands.entity(e).despawn();
-    }
+    });
+}
 
+pub fn despawn_level_contents(
+    to_despawn: Query<Entity, Or<(With<Guy>, With<Wall>, With<Portal>)>>,
+    commands: Commands,
+) {
+    despawn_where(to_despawn, commands)
+}
+
+pub fn enter_loading(mut commands: Commands) {
     // TODO load level assets using assetserver here, then wait for them
     // with a system in Loading state, instead of just loading everything in
     // the exit_loading state

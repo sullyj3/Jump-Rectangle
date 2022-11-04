@@ -13,11 +13,12 @@ use bevy_prototype_debug_lines::*;
 use iyes_loopless::state::NextState;
 // use rand::prelude::*;
 
-use crate::level::{Level, LevelContents, LoadingLevel, WALL_TILE_SIZE};
+use crate::level::{
+    Level, LevelContents, LoadingLevel, Portal, PortalBundle, WALL_TILE_SIZE,
+};
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
-    portal::{Portal, PortalBundle},
 };
 
 pub const TIME_STEP: f32 = 1. / 60.0;

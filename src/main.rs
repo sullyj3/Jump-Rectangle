@@ -3,7 +3,6 @@ mod input;
 mod level;
 mod physics_object;
 mod platformer;
-mod portal;
 mod state_transitions;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;

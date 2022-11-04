@@ -61,36 +61,33 @@ pub fn input_system(
         exit.send(AppExit);
     }
 
-    // Start button state transitions
-    if action_state.just_pressed(Action::Start) {
-        match state.0 {
-            AppState::Loading => (),
-            AppState::MainMenu => {
-                // I don't really love this approach of needing to insert a LoadingLevel
-                // when I switch to the loading state
-                // not sure if there's a better way to communicate between states.
-                commands.insert_resource(LoadingLevel::Overworld);
-                commands.insert_resource(NextState(AppState::Loading))
-            }
-            AppState::InGame => {
-                commands.insert_resource(NextState(AppState::Paused))
-            }
-            AppState::Paused => {
-                commands.insert_resource(NextState(AppState::InGame))
-            }
-        };
-        return;
-    }
+    {
+        use AppState::*;
+        // Start button state transitions
+        if action_state.just_pressed(Action::Start) {
+            match state.0 {
+                Loading => (),
+                MainMenu => {
+                    // I don't really love this approach of needing to insert a LoadingLevel
+                    // when I switch to the loading state
+                    // not sure if there's a better way to communicate between states.
+                    commands.insert_resource(LoadingLevel::Overworld);
+                    commands.insert_resource(NextState(AppState::Loading))
+                }
+                InGame => commands.insert_resource(NextState(AppState::Paused)),
+                Paused => commands.insert_resource(NextState(AppState::InGame)),
+            };
+            return;
+        }
 
-    // Exit if we're not in game, and therefore shouldn't handle in game input
-    // TODO: split into 2 systems, one for the character and
-    // one for the whole game. this will allow us to conditionally run ingame input system only
-    // during AppState::InGame, eliminating this check
-    match state.0 {
-        AppState::MainMenu => return,
-        AppState::Paused => return,
-        AppState::Loading => return,
-        AppState::InGame => (),
+        // Exit if we're not in game, and therefore shouldn't handle in game input
+        // TODO: split into 2 systems, one for the character and
+        // one for the whole game. this will allow us to conditionally run ingame input system only
+        // during AppState::InGame, eliminating this check
+        match state.0 {
+            MainMenu | Paused | Loading => return,
+            InGame => (),
+        }
     }
 
     let (guy_entity, guy, mut physics, mut transform, mut jump_state, can_fly) =

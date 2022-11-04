@@ -336,11 +336,12 @@ pub fn spawn_level(
                         scale: &WALL_TILE_SIZE,
                     });
             }
-            LevelContents::Portal => {
+            LevelContents::Portal(level_path) => {
                 debug!("spawning a portal at {:?}", translation);
                 commands.spawn_bundle(PortalBundle::new(
                     portal_image_handle.clone(),
                     translation,
+                    level_path.to_path_buf(),
                 ));
             }
         }

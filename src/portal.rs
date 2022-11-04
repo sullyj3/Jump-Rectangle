@@ -1,9 +1,11 @@
+use std::path::PathBuf;
+
 use bevy::prelude::*;
 
 use crate::platformer::{Aabb, DrawAabb};
 
 #[derive(Component)]
-pub struct Portal;
+pub struct Portal(PathBuf);
 
 #[derive(Bundle)]
 pub struct PortalBundle {
@@ -17,9 +19,13 @@ pub struct PortalBundle {
 impl PortalBundle {
     const PORTAL_BUNDLE_SCALE: Vec2 = Vec2::new(15., 15.);
 
-    pub fn new(texture_handle: Handle<Image>, at: Vec3) -> Self {
+    pub fn new(
+        texture_handle: Handle<Image>,
+        at: Vec3,
+        level_path: PathBuf,
+    ) -> Self {
         PortalBundle {
-            portal: Portal,
+            portal: Portal(level_path),
             sprite: SpriteBundle {
                 texture: texture_handle,
                 transform: Transform {

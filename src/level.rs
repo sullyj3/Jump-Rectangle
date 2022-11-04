@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use bevy::prelude::*;
 
@@ -7,7 +7,7 @@ use image::{Rgba, RgbaImage};
 pub enum LevelContents {
     Player,
     Tile,
-    Portal,
+    Portal(PathBuf),
 }
 
 // Vec2 is the position in units of 18x18 tiles, not in world space
@@ -57,5 +57,31 @@ impl Level {
         } else {
             Ok(level)
         }
+    }
+
+    pub fn generate_menu_level() -> Self {
+        let levels: glob::Paths =
+            glob::glob("assets/level*.png").expect("failed to read glob pattern");
+
+        const N_TILES_PER_LEVEL: usize = 5;
+        Level(
+            levels
+                .map(Result::unwrap)
+                .enumerate()
+                .flat_map(|(i, level)| {
+                    let offset = i * N_TILES_PER_LEVEL;
+                    (offset..offset + N_TILES_PER_LEVEL)
+                        .map(|x| {
+                            let vec = IVec2::new(x as i32, 0);
+                            (vec, LevelContents::Tile)
+                        })
+                        .chain(std::iter::once((
+                            IVec2::new(offset as i32 + 2, -1),
+                            LevelContents::Portal(level),
+                        )))
+                })
+                .chain(std::iter::once((IVec2::new(0, -1), LevelContents::Player)))
+                .collect(),
+        )
     }
 }

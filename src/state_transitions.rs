@@ -1,7 +1,6 @@
 use crate::level::*;
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
-use glob::glob;
 use image::{DynamicImage, RgbaImage};
 use std::iter;
 
@@ -60,33 +59,6 @@ pub fn exit_menu(
         portal_image_handle,
         &level,
     );
-}
-
-pub fn generate_menu_level() -> Level {
-    let n_levels = glob("assets/level*.png")
-        .expect("failed to read glob pattern")
-        .count();
-
-    const N_TILES_PER_LEVEL: usize = 5;
-    debug!("n_levels: {:?}", n_levels);
-    assert_eq!(n_levels, 3);
-    Level(
-        (0..n_levels)
-            .flat_map(|i| {
-                let offset = i * N_TILES_PER_LEVEL;
-                (offset..offset + N_TILES_PER_LEVEL)
-                    .map(|x| {
-                        let vec = IVec2::new(x as i32, 0);
-                        (vec, LevelContents::Tile)
-                    })
-                    .chain(iter::once((
-                        IVec2::new(offset as i32 + 2, -1),
-                        LevelContents::Portal,
-                    )))
-            })
-            .chain(iter::once((IVec2::new(0, -1), LevelContents::Player)))
-            .collect(),
-    )
 }
 
 // fn convert_image(images: Res<Assets<Image>>) {

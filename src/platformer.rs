@@ -406,7 +406,7 @@ pub fn guy_collision_system(
 
         if collision.is_some() {
             commands.insert_resource(NextState(AppState::Loading));
-            commands.insert_resource(LoadingLevel(portal.0.clone()));
+            commands.insert_resource(LoadingLevel::Path(portal.0.clone()));
         }
     }
 

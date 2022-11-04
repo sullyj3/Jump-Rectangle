@@ -23,7 +23,12 @@ pub fn exit_paused(
     pm_visibility.is_visible = false;
 }
 
-pub struct LoadingLevel(pub PathBuf);
+pub enum LoadingLevel {
+    Path(PathBuf),
+    // needs to be its own variant because menu is dynamically generated
+    // rather than being loaded from a file
+    Overworld,
+}
 
 pub fn enter_loading(
     to_despawn: Query<Entity, Or<(With<Guy>, With<Wall>, With<Portal>)>>,
@@ -51,8 +56,30 @@ pub fn exit_loading(
     asset_server: Res<AssetServer>,
     loading_level: Res<LoadingLevel>,
 ) {
-    let LoadingLevel(level_path) = &*loading_level;
-    commands.remove_resource::<LoadingLevel>();
+    // TODO move all this stuff into level.rs probably
+    let level: Level = match &*loading_level {
+        LoadingLevel::Path(level_path) => {
+            // TODO also hack, what if cwd is not project root?
+            let level_image: DynamicImage = image::io::Reader::open(level_path)
+                .expect("failed to open file assets/level3.png")
+                .decode()
+                .expect("decoding level3.png failed");
+
+            let level_image: &RgbaImage = level_image
+                .as_rgba8()
+                .expect("level3.png could not be converted to rgba8");
+
+            Level::parse_image(level_image).unwrap_or_else(|e| match e {
+                LevelParseError::WrongNumberPlayers(_) => {
+                    panic!(
+                        "Wrong number of players while parsing level image: {:?}",
+                        e
+                    )
+                }
+            })
+        }
+        LoadingLevel::Overworld => Level::generate_overworld_level(),
+    };
 
     let tile_texture_handle = asset_server.load("tiles_packed.png");
     let portal_image_handle: Handle<Image> = asset_server.load("portal.png");
@@ -61,24 +88,6 @@ pub fn exit_loading(
     let tile_texture_atlas_handle: Handle<TextureAtlas> =
         texture_atlases.add(tile_texture_atlas);
 
-    // TODO also hack, what if cwd is not project root?
-    let level_image: DynamicImage = image::io::Reader::open(level_path)
-        .expect("failed to open file assets/level3.png")
-        .decode()
-        .expect("decoding level3.png failed");
-
-    let level_image: &RgbaImage = level_image
-        .as_rgba8()
-        .expect("level3.png could not be converted to rgba8");
-
-    let level = Level::parse_image(level_image).unwrap_or_else(|e| match e {
-        LevelParseError::WrongNumberPlayers(_) => {
-            panic!("Wrong number of players while parsing level image: {:?}", e)
-        }
-    });
-
-    // let level = generate_menu_level();
-
     spawn_level(
         &mut commands,
         tile_texture_atlas_handle,
@@ -86,6 +95,7 @@ pub fn exit_loading(
         &level,
     );
 
+    commands.remove_resource::<LoadingLevel>();
     commands.insert_resource(NextState(AppState::InGame));
     debug!("loading complete, starting game");
 }

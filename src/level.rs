@@ -59,7 +59,7 @@ impl Level {
         }
     }
 
-    pub fn generate_menu_level() -> Self {
+    pub fn generate_overworld_level() -> Self {
         let levels: glob::Paths =
             glob::glob("assets/level*.png").expect("failed to read glob pattern");
 

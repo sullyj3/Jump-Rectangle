@@ -66,7 +66,7 @@ pub fn input_system(
         match state.0 {
             AppState::Loading => (),
             AppState::MainMenu => {
-                commands.insert_resource(LoadingLevel("assets/level1.png".into()));
+                commands.insert_resource(LoadingLevel::Overworld);
                 commands.insert_resource(NextState(AppState::Loading))
             }
             AppState::InGame => {

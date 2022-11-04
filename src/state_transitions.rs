@@ -1,6 +1,6 @@
 use crate::guy::Guy;
 use crate::level::*;
-use crate::platformer::{spawn_level, AppState, PauseMessage, Wall};
+use crate::platformer::{spawn_level, AppState, PauseMessage};
 use bevy::prelude::*;
 use iyes_loopless::state::NextState;
 

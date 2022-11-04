@@ -13,9 +13,7 @@ use bevy_prototype_debug_lines::*;
 use iyes_loopless::state::NextState;
 // use rand::prelude::*;
 
-use crate::level::{
-    Level, LevelContents, LoadingLevel, Portal, PortalBundle, WALL_TILE_SIZE,
-};
+use crate::level::*;
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
@@ -81,9 +79,6 @@ pub const PHYSICS_TIME_STEP: f32 = 1.0 / 120.0;
 //         // },
 //     ])
 // }
-
-#[derive(Component)]
-pub struct Wall;
 
 // for now we assume they're fixed size, specified by some constant
 // revisit this once dynamically checking size becomes more ergonomic for
@@ -301,47 +296,23 @@ pub fn spawn_level(
                     .insert(DrawAabb);
             }
             LevelContents::Tile => {
-                // TODO extract this to a new custom bundle
-
-                // let mut rng = rand::thread_rng();
-
-                // let mut grass_dirt_indices: [usize; 8] = [0; 8];
-                // for (i, tile_idx) in (0..4).chain(20..24).enumerate() {
-                //     grass_dirt_indices[i] = tile_idx;
-                // }
-
-                // // const N_TILES: usize = 20 * 9;
-                // // chosen by fair dice roll, guaranteed random
-                // let random_index: usize =
-                //     *grass_dirt_indices.choose(&mut rng).unwrap();
                 debug!("spawning a tile at {:?}", translation);
 
                 let tile_index = autotile_code_to_spritesheet_index(
                     classify_autotile(position, level),
                 );
                 commands
-                    .spawn_bundle(SpriteSheetBundle {
-                        sprite: TextureAtlasSprite {
-                            index: tile_index,
-                            ..Default::default()
-                        },
-                        transform: Transform {
-                            translation,
-                            ..default()
-                        },
-                        texture_atlas: tile_texture_atlas_handle.clone(),
-                        ..default()
-                    })
-                    .insert(Wall)
-                    .insert(DrawAabb)
-                    .insert(Aabb::StaticAabb {
-                        scale: &WALL_TILE_SIZE,
-                    });
+                    .spawn_bundle(TileBundle::new(
+                        tile_index,
+                        translation,
+                        &tile_texture_atlas_handle,
+                    ))
+                    .insert(DrawAabb);
             }
             LevelContents::Portal(level_path) => {
                 debug!("spawning a portal at {:?}", translation);
                 commands.spawn_bundle(PortalBundle::new(
-                    portal_image_handle.clone(),
+                    &portal_image_handle,
                     translation,
                     level_path.to_path_buf(),
                 ));

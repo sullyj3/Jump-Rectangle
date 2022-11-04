@@ -19,8 +19,6 @@ pub enum LevelParseError {
     WrongNumberPlayers(i32),
 }
 
-pub const WALL_TILE_SIZE: Vec2 = Vec2::new(18., 18.);
-
 // Specifies a level to be either fetched or generated
 pub enum LoadingLevel {
     Path(PathBuf),
@@ -137,14 +135,14 @@ impl PortalBundle {
     const PORTAL_BUNDLE_SCALE: Vec2 = Vec2::new(15., 15.);
 
     pub fn new(
-        texture_handle: Handle<Image>,
+        texture_handle: &Handle<Image>,
         at: Vec3,
         level_path: PathBuf,
     ) -> Self {
         PortalBundle {
             portal: Portal(level_path),
             sprite: SpriteBundle {
-                texture: texture_handle,
+                texture: texture_handle.clone(),
                 transform: Transform {
                     translation: at,
                     ..Default::default()
@@ -155,6 +153,46 @@ impl PortalBundle {
                 scale: &Self::PORTAL_BUNDLE_SCALE,
             },
             draw_aabb: DrawAabb,
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct TileBundle {
+    #[bundle]
+    sprite_sheet: SpriteSheetBundle,
+    wall: Wall,
+    aabb: Aabb,
+}
+
+#[derive(Component)]
+pub struct Wall;
+
+impl TileBundle {
+    pub const TILE_SIZE: Vec2 = Vec2::new(18., 18.);
+
+    pub fn new(
+        tile_index: usize,
+        translation: Vec3,
+        texture_atlas: &Handle<TextureAtlas>,
+    ) -> Self {
+        TileBundle {
+            sprite_sheet: SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index: tile_index,
+                    ..Default::default()
+                },
+                transform: Transform {
+                    translation,
+                    ..default()
+                },
+                texture_atlas: texture_atlas.clone(),
+                ..default()
+            },
+            wall: Wall,
+            aabb: Aabb::StaticAabb {
+                scale: &Self::TILE_SIZE,
+            },
         }
     }
 }

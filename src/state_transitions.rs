@@ -2,6 +2,7 @@ use crate::level::*;
 use crate::platformer::{spawn_level, PauseMessage};
 use bevy::prelude::*;
 use glob::glob;
+use image::{DynamicImage, RgbaImage};
 use std::iter;
 
 pub fn enter_paused(
@@ -36,21 +37,22 @@ pub fn exit_menu(
         texture_atlases.add(tile_texture_atlas);
 
     // TODO also hack, what if cwd is not project root?
-    // let level_image: DynamicImage = image::io::Reader::open("assets/level3.png")
-    //     .expect("failed to open file assets/level3.png")
-    //     .decode()
-    //     .expect("decoding level3.png failed");
+    let level_image: DynamicImage = image::io::Reader::open("assets/level3.png")
+        .expect("failed to open file assets/level3.png")
+        .decode()
+        .expect("decoding level3.png failed");
 
-    // let level_image: &RgbaImage = level_image
-    //     .as_rgba8()
-    //     .expect("level3.png could not be converted to rgba8");
+    let level_image: &RgbaImage = level_image
+        .as_rgba8()
+        .expect("level3.png could not be converted to rgba8");
 
-    // let level = parse_level_image(level_image).unwrap_or_else(|e| match e {
-    //     LevelParseError::WrongNumberPlayers(_) => {
-    //         panic!("Wrong number of players while parsing level image: {:?}", e)
-    //     }
-    // });
-    let level = generate_menu_level();
+    let level = Level::parse_image(level_image).unwrap_or_else(|e| match e {
+        LevelParseError::WrongNumberPlayers(_) => {
+            panic!("Wrong number of players while parsing level image: {:?}", e)
+        }
+    });
+
+    // let level = generate_menu_level();
 
     spawn_level(
         &mut commands,

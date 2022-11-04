@@ -3,9 +3,7 @@ use crate::level::*;
 use crate::platformer::{spawn_level, AppState, PauseMessage, Wall};
 use crate::portal::Portal;
 use bevy::prelude::*;
-use image::{DynamicImage, RgbaImage};
 use iyes_loopless::state::NextState;
-use std::path::PathBuf;
 
 pub fn enter_paused(
     mut pause_message_vis: Query<&mut Visibility, With<PauseMessage>>,
@@ -21,13 +19,6 @@ pub fn exit_paused(
     debug!("Game resumed");
     let mut pm_visibility = pause_message_vis.single_mut();
     pm_visibility.is_visible = false;
-}
-
-pub enum LoadingLevel {
-    Path(PathBuf),
-    // needs to be its own variant because menu is dynamically generated
-    // rather than being loaded from a file
-    Overworld,
 }
 
 pub fn enter_loading(
@@ -57,29 +48,7 @@ pub fn exit_loading(
     loading_level: Res<LoadingLevel>,
 ) {
     // TODO move all this stuff into level.rs probably
-    let level: Level = match &*loading_level {
-        LoadingLevel::Path(level_path) => {
-            // TODO also hack, what if cwd is not project root?
-            let level_image: DynamicImage = image::io::Reader::open(level_path)
-                .expect("failed to open file assets/level3.png")
-                .decode()
-                .expect("decoding level3.png failed");
-
-            let level_image: &RgbaImage = level_image
-                .as_rgba8()
-                .expect("level3.png could not be converted to rgba8");
-
-            Level::parse_image(level_image).unwrap_or_else(|e| match e {
-                LevelParseError::WrongNumberPlayers(_) => {
-                    panic!(
-                        "Wrong number of players while parsing level image: {:?}",
-                        e
-                    )
-                }
-            })
-        }
-        LoadingLevel::Overworld => Level::generate_overworld_level(),
-    };
+    let level: Level = Level::load(&*loading_level);
 
     let tile_texture_handle = asset_server.load("tiles_packed.png");
     let portal_image_handle: Handle<Image> = asset_server.load("portal.png");

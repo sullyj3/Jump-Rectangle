@@ -6,9 +6,9 @@ use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::guy::*;
+use crate::level::LoadingLevel;
 use crate::physics_object::{Gravity, PhysicsObject};
 use crate::platformer::AppState;
-use crate::state_transitions::LoadingLevel;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Action {
@@ -66,6 +66,9 @@ pub fn input_system(
         match state.0 {
             AppState::Loading => (),
             AppState::MainMenu => {
+                // I don't really love this approach of needing to insert a LoadingLevel
+                // when I switch to the loading state
+                // not sure if there's a better way to communicate between states.
                 commands.insert_resource(LoadingLevel::Overworld);
                 commands.insert_resource(NextState(AppState::Loading))
             }

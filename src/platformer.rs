@@ -10,13 +10,17 @@ use bevy::{
     // input::gamepad::*,
 };
 use bevy_prototype_debug_lines::*;
+use iyes_loopless::state::NextState;
 // use rand::prelude::*;
 
-use crate::level::{Level, LevelContents, WALL_TILE_SIZE};
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
     portal::{Portal, PortalBundle},
+};
+use crate::{
+    level::{Level, LevelContents, WALL_TILE_SIZE},
+    state_transitions::LoadingLevel,
 };
 
 pub const TIME_STEP: f32 = 1. / 60.0;
@@ -371,6 +375,7 @@ pub fn physics_system(
 pub enum AppState {
     MainMenu,
     InGame,
+    Loading,
     Paused,
 }
 
@@ -381,7 +386,8 @@ pub fn guy_collision_system(
         (With<Guy>, Without<Wall>),
     >,
     wall_query: Query<(&Transform, &Aabb), (With<Wall>, Without<Guy>)>,
-    portal_query: Query<(&Transform, &Aabb), (With<Portal>, Without<Guy>)>,
+    portal_query: Query<(&Portal, &Transform, &Aabb), Without<Guy>>,
+    mut commands: Commands,
 ) {
     let (mut guy_physics, mut guy_transform, &guy_aabb, mut jump_state) =
         guy_query.single_mut();
@@ -389,7 +395,7 @@ pub fn guy_collision_system(
     let guy_size = guy_aabb.get_scale(&guy_transform);
 
     // PORTAL COLLISIONS
-    for (portal_transform, portal_aabb) in portal_query.iter() {
+    for (portal, portal_transform, portal_aabb) in portal_query.iter() {
         let portal_size = portal_aabb.get_scale(portal_transform);
         let collision = collide(
             portal_transform.translation,
@@ -399,7 +405,8 @@ pub fn guy_collision_system(
         );
 
         if collision.is_some() {
-            info!("collided with portal");
+            commands.insert_resource(NextState(AppState::Loading));
+            commands.insert_resource(LoadingLevel(portal.0.clone()));
         }
     }
 

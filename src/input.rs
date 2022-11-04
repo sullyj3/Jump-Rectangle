@@ -8,6 +8,7 @@ use leafwing_input_manager::prelude::*;
 use crate::guy::*;
 use crate::physics_object::{Gravity, PhysicsObject};
 use crate::platformer::AppState;
+use crate::state_transitions::LoadingLevel;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Action {
@@ -63,8 +64,10 @@ pub fn input_system(
     // Start button state transitions
     if action_state.just_pressed(Action::Start) {
         match state.0 {
+            AppState::Loading => (),
             AppState::MainMenu => {
-                commands.insert_resource(NextState(AppState::InGame))
+                commands.insert_resource(LoadingLevel("assets/level1.png".into()));
+                commands.insert_resource(NextState(AppState::Loading))
             }
             AppState::InGame => {
                 commands.insert_resource(NextState(AppState::Paused))
@@ -83,6 +86,7 @@ pub fn input_system(
     match state.0 {
         AppState::MainMenu => return,
         AppState::Paused => return,
+        AppState::Loading => return,
         AppState::InGame => (),
     }
 

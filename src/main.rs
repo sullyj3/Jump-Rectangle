@@ -82,8 +82,9 @@ fn main() {
         .add_system(draw_aabbs)
         .add_system(bevy::window::close_on_esc)
         .add_loopless_state(AppState::MainMenu)
+        .add_enter_system(AppState::Loading, enter_loading)
+        .add_exit_system(AppState::Loading, exit_loading)
         .add_enter_system(AppState::Paused, enter_paused)
         .add_exit_system(AppState::Paused, exit_paused)
-        .add_exit_system(AppState::MainMenu, exit_menu)
         .run();
 }

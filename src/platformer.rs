@@ -15,7 +15,7 @@ use bevy_prototype_debug_lines::*;
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
-    portal::PortalBundle,
+    portal::{Portal, PortalBundle},
     state_transitions::{Level, LevelContents, WALL_TILE_SIZE},
 };
 
@@ -380,12 +380,29 @@ pub fn guy_collision_system(
         (With<Guy>, Without<Wall>),
     >,
     wall_query: Query<(&Transform, &Aabb), (With<Wall>, Without<Guy>)>,
+    portal_query: Query<(&Transform, &Aabb), (With<Portal>, Without<Guy>)>,
 ) {
     let (mut guy_physics, mut guy_transform, &guy_aabb, mut jump_state) =
         guy_query.single_mut();
 
     let guy_size = guy_aabb.get_scale(&guy_transform);
 
+    // PORTAL COLLISIONS
+    for (portal_transform, portal_aabb) in portal_query.iter() {
+        let portal_size = portal_aabb.get_scale(portal_transform);
+        let collision = collide(
+            portal_transform.translation,
+            portal_size,
+            guy_transform.translation,
+            guy_size,
+        );
+
+        if let Some(_) = collision {
+            info!("collided with portal");
+        }
+    }
+
+    // WALL COLLISIONS
     // assume we're in the air until proven otherwise
     jump_state.on_ground = None;
     jump_state.coyote_timer.tick(time.delta());

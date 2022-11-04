@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::platformer::{Aabb, DrawAabb};
 
 #[derive(Component)]
-struct Portal;
+pub struct Portal;
 
 #[derive(Bundle)]
 pub struct PortalBundle {

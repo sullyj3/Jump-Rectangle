@@ -15,6 +15,7 @@ use bevy_prototype_debug_lines::*;
 use crate::{
     guy::*,
     physics_object::{Gravity, PhysicsObject},
+    portal::PortalBundle,
     state_transitions::{Level, LevelContents, WALL_TILE_SIZE},
 };
 
@@ -280,6 +281,7 @@ fn autotile_code_to_spritesheet_index(n: usize) -> usize {
 pub fn spawn_level(
     commands: &mut Commands,
     tile_texture_atlas_handle: Handle<TextureAtlas>,
+    portal_image_handle: Handle<Image>,
     level: &Level,
 ) {
     debug!("spawning level");
@@ -291,6 +293,7 @@ pub fn spawn_level(
             Vec3::new((x * TILE_WIDTH) as f32, -1.0 * (y * TILE_WIDTH) as f32, 0.0);
         match level_contents_type {
             LevelContents::Player => {
+                debug!("spawning a player at {:?}", translation);
                 commands
                     .spawn_bundle(GuyBundle::with_translation(translation))
                     .insert(DrawAabb);
@@ -309,6 +312,7 @@ pub fn spawn_level(
                 // // chosen by fair dice roll, guaranteed random
                 // let random_index: usize =
                 //     *grass_dirt_indices.choose(&mut rng).unwrap();
+                debug!("spawning a tile at {:?}", translation);
 
                 let tile_index = autotile_code_to_spritesheet_index(
                     classify_autotile(position, &level),
@@ -331,6 +335,13 @@ pub fn spawn_level(
                     .insert(Aabb::StaticAabb {
                         scale: &WALL_TILE_SIZE,
                     });
+            }
+            LevelContents::Portal => {
+                debug!("spawning a portal at {:?}", translation);
+                commands.spawn_bundle(PortalBundle::new(
+                    portal_image_handle.clone(),
+                    translation,
+                ));
             }
         }
     }

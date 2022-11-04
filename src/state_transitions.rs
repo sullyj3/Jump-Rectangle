@@ -1,5 +1,5 @@
 use crate::platformer::{spawn_level, PauseMessage};
-use bevy::prelude::*;
+use bevy::{prelude::*, render::render_resource::Texture};
 use glob::glob;
 use image::{DynamicImage, Rgba, RgbaImage};
 use std::{collections::HashMap, iter};
@@ -29,6 +29,7 @@ pub fn exit_menu(
     debug!("starting game");
 
     let tile_texture_handle = asset_server.load("tiles_packed.png");
+    let portal_image_handle: Handle<Image> = asset_server.load("portal.png");
     let tile_texture_atlas =
         TextureAtlas::from_grid(tile_texture_handle, Vec2::new(18.0, 18.0), 20, 9);
     let tile_texture_atlas_handle: Handle<TextureAtlas> =
@@ -51,7 +52,12 @@ pub fn exit_menu(
     // });
     let level = generate_menu_level();
 
-    spawn_level(&mut commands, tile_texture_atlas_handle, &level);
+    spawn_level(
+        &mut commands,
+        tile_texture_atlas_handle,
+        portal_image_handle,
+        &level,
+    );
 }
 
 pub fn generate_menu_level() -> Level {
@@ -66,11 +72,15 @@ pub fn generate_menu_level() -> Level {
         (0..n_levels)
             .flat_map(|i| {
                 let offset = i * N_TILES_PER_LEVEL;
-                (offset..offset + N_TILES_PER_LEVEL).map(|x| {
-                    let vec = IVec2::new(x as i32, 0);
-                    debug!("adding tile at {:?}", vec);
-                    (vec, LevelContents::Tile)
-                })
+                (offset..offset + N_TILES_PER_LEVEL)
+                    .map(|x| {
+                        let vec = IVec2::new(x as i32, 0);
+                        (vec, LevelContents::Tile)
+                    })
+                    .chain(iter::once((
+                        IVec2::new(offset as i32 + 2, -1),
+                        LevelContents::Portal,
+                    )))
             })
             .chain(iter::once((IVec2::new(0, -1), LevelContents::Player)))
             .collect(),
@@ -80,7 +90,10 @@ pub fn generate_menu_level() -> Level {
 pub enum LevelContents {
     Player,
     Tile,
+    Portal,
 }
+
+// Vec2 is the position in units of 18x18 tiles, not in world space
 pub struct Level(pub HashMap<IVec2, LevelContents>);
 
 #[derive(Debug)]

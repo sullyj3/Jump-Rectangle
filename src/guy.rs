@@ -54,11 +54,8 @@ impl CoyoteTimer {
     }
 
     pub fn can_jump(&self) -> bool {
-        if let Some(timer) = &self.timer {
-            !timer.finished()
-        } else {
-            false
-        }
+        let Some(timer) = &self.timer else { return false };
+        !timer.finished()
     }
 }
 

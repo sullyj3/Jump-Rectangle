@@ -434,21 +434,18 @@ pub fn move_camera(
     mut camera: Query<&mut Transform, (With<Camera>, Without<Guy>)>,
     player: Query<&Transform, (With<Guy>, Without<Camera>)>,
 ) {
-    let guy_pos = if let Ok(player) = player.get_single() {
-        player.translation
-    } else {
-        return;
-    };
+    let Ok(player) = player.get_single() else { return };
+    let Ok(mut transform) = camera.get_single_mut() else { return };
 
-    for mut transform in camera.iter_mut() {
-        let camera_pos: Vec3 = transform.translation;
-        // i don't even know what the units are
-        let epsilon: f32 = 1.0;
-        transform.translation = if camera_pos.distance(guy_pos) < epsilon {
-            guy_pos
-        } else {
-            camera_pos.lerp(guy_pos, 0.1)
-        }
+    let guy_pos = player.translation;
+    let camera_pos: Vec3 = transform.translation;
+
+    // i don't even know what the units are
+    let epsilon: f32 = 1.0;
+    transform.translation = if camera_pos.distance(guy_pos) < epsilon {
+        guy_pos
+    } else {
+        camera_pos.lerp(guy_pos, 0.1)
     }
 }
 

@@ -84,10 +84,7 @@ pub fn input_system(
         // TODO: split into 2 systems, one for the character and
         // one for the whole game. this will allow us to conditionally run ingame input system only
         // during AppState::InGame, eliminating this check
-        match state.0 {
-            MainMenu | Paused | Loading => return,
-            InGame => (),
-        }
+        let InGame = state.0 else { return };
     }
 
     let (guy_entity, guy, mut physics, mut transform, mut jump_state, can_fly) =

@@ -343,6 +343,8 @@ pub fn physics_system(
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
     MainMenu,
+    // Invariant: We can only transition to AppState::InGame if we have inserted a LoadedLevel
+    // resource
     InGame,
     Loading,
     Paused,

@@ -1,9 +1,9 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, io::Cursor, path::PathBuf};
 
 use crate::platformer::{Aabb, DrawAabb};
-use bevy::prelude::*;
+use bevy::{prelude::*, render::render_resource::TextureFormat};
 
-use image::{DynamicImage, Rgba, RgbaImage};
+use image::{DynamicImage, ImageBuffer, ImageFormat, Rgba, RgbaImage};
 
 pub enum LevelContents {
     Player,
@@ -27,34 +27,70 @@ pub enum LoadingLevel {
     Overworld,
 }
 
+// Copied from
+// https://github.com/bevyengine/bevy/blob/v0.8.1/crates/bevy_render/src/texture/image_texture_conversion.rs
+// Temporary measure for 0.8, 0.9 will have a public function
+fn texture_to_image(texture: &Image) -> Option<DynamicImage> {
+    match texture.texture_descriptor.format {
+        TextureFormat::R8Unorm => ImageBuffer::from_raw(
+            texture.texture_descriptor.size.width,
+            texture.texture_descriptor.size.height,
+            texture.data.clone(),
+        )
+        .map(DynamicImage::ImageLuma8),
+        TextureFormat::Rg8Unorm => ImageBuffer::from_raw(
+            texture.texture_descriptor.size.width,
+            texture.texture_descriptor.size.height,
+            texture.data.clone(),
+        )
+        .map(DynamicImage::ImageLumaA8),
+        TextureFormat::Rgba8UnormSrgb => ImageBuffer::from_raw(
+            texture.texture_descriptor.size.width,
+            texture.texture_descriptor.size.height,
+            texture.data.clone(),
+        )
+        .map(DynamicImage::ImageRgba8),
+        _ => None,
+    }
+}
+
 impl Level {
-    pub fn load(to_load: &LoadingLevel) -> Self {
-        match to_load {
-            LoadingLevel::Path(level_path) => {
-                // TODO also hack, what if cwd is not project root?
-                let level_image: DynamicImage = image::io::Reader::open(level_path)
-                    .expect("failed to open file assets/level3.png")
-                    .decode()
-                    .expect("decoding level3.png failed");
+    pub fn from_bevy_image(img: &Image) -> Result<Self, LevelParseError> {
+        let dynamic_image = texture_to_image(img).unwrap();
+        let rgba: &RgbaImage = dynamic_image
+            .as_rgba8()
+            .expect("level could not be converted to rgba8");
 
-                let level_image: &RgbaImage = level_image
-                    .as_rgba8()
-                    .expect("level3.png could not be converted to rgba8");
-
-                Level::parse_image(level_image).unwrap_or_else(|e| match e {
-                    LevelParseError::WrongNumberPlayers(_) => {
-                        panic!(
-                            "Wrong number of players while parsing level image: {:?}",
-                            e
-                        )
-                    }
-                })
-            }
-            LoadingLevel::Overworld => Level::generate_overworld_level(),
-        }
+        Level::from_rgba(rgba)
     }
 
-    pub fn parse_image(level_image: &RgbaImage) -> Result<Level, LevelParseError> {
+    // pub fn load(to_load: &LoadingLevel) -> Self {
+    //     match to_load {
+    //         LoadingLevel::Path(level_path) => {
+    //             // TODO also hack, what if cwd is not project root?
+    //             let level_image: DynamicImage = image::io::Reader::open(level_path)
+    //                 .expect("failed to open file assets/level3.png")
+    //                 .decode()
+    //                 .expect("decoding level3.png failed");
+
+    //             let level_image: &RgbaImage = level_image
+    //                 .as_rgba8()
+    //                 .expect("level3.png could not be converted to rgba8");
+
+    //             Level::from_rgba(level_image).unwrap_or_else(|e| match e {
+    //                 LevelParseError::WrongNumberPlayers(_) => {
+    //                     panic!(
+    //                         "Wrong number of players while parsing level image: {:?}",
+    //                         e
+    //                     )
+    //                 }
+    //             })
+    //         }
+    //         LoadingLevel::Overworld => Level::generate_overworld_level(),
+    //     }
+    // }
+
+    pub fn from_rgba(level_image: &RgbaImage) -> Result<Level, LevelParseError> {
         const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
         const RED: Rgba<u8> = Rgba([255, 0, 0, 255]);
 
@@ -100,6 +136,7 @@ impl Level {
         Level(
             levels
                 .map(Result::unwrap)
+                .map(|p| p.strip_prefix("assets").unwrap().to_path_buf())
                 .enumerate()
                 .flat_map(|(i, level)| {
                     let offset = i * N_TILES_PER_LEVEL;

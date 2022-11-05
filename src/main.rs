@@ -83,6 +83,7 @@ fn main() {
         .add_loopless_state(AppState::MainMenu)
         .add_enter_system(AppState::Loading, enter_loading)
         .add_enter_system(AppState::Loading, despawn_level_contents)
+        .add_system(wait_level_load.run_in_state(AppState::Loading))
         .add_exit_system(AppState::Loading, exit_loading)
         .add_enter_system(AppState::Paused, enter_paused)
         .add_exit_system(AppState::Paused, exit_paused)

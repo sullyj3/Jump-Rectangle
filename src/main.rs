@@ -30,13 +30,15 @@ fn main() {
         })
         .insert_resource(ImageSettings::default_nearest())
         .insert_resource(WindowDescriptor {
-            width: 960.0,
-            height: 540.0,
+            width: 640.0,
+            height: 360.0,
+            // width: 960.0,
+            // height: 540.0,
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(InputManagerPlugin::<GlobalAction>::default())
         .add_plugin(InputManagerPlugin::<GameAction>::default())
         .add_plugin(DebugLinesPlugin::default())
@@ -77,11 +79,11 @@ fn main() {
                 .after("physics"),
         )
         .add_fixed_timestep_system(
-            "physics_timestep",
+            "input_timestep",
             0,
             update_jump_state
                 .run_in_state(AppState::InGame)
-                .after("guy_collision")
+                // .after("guy_collision")
                 .label("update_jump_state"),
         )
         .add_system(

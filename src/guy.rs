@@ -14,6 +14,7 @@ impl PreJumpTimer {
     const PRE_JUMP_TOLERANCE: f32 = 0.07;
 
     pub fn pre_jump(&mut self) {
+        debug!("pre jump queued");
         self.timer.reset();
     }
 }
@@ -69,6 +70,24 @@ impl Default for CoyoteTimer {
     }
 }
 
+#[derive(Component, Debug)]
+pub struct JumpTimer {
+    pub timer: Timer,
+}
+
+impl JumpTimer {
+    // TODO Tune this
+    const JUMP_MAX_HOLD_DURATION: f32 = 0.130;
+}
+
+impl Default for JumpTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(Self::JUMP_MAX_HOLD_DURATION, false),
+        }
+    }
+}
+
 #[derive(Component, Debug, Default)]
 pub struct JumpState {
     pub on_ground: Option<f32>,
@@ -79,6 +98,8 @@ pub struct JumpState {
 
     // When the payer jumps just after walking off a ledge, we allow them to jump anyway
     pub coyote_timer: CoyoteTimer,
+
+    pub jump_timer: JumpTimer,
 }
 
 impl JumpState {
@@ -92,6 +113,8 @@ impl JumpState {
             PreJump,
         }
 
+        debug!("trying to jump");
+        debug!("self.on_ground: {:?}", self.on_ground);
         let should_jump = match self.on_ground {
             Some(..) => JumpAction::Jump,
             None => {
@@ -109,16 +132,35 @@ impl JumpState {
         }
     }
 
+    pub fn jump_held(&mut self, physics: &mut PhysicsObject) {
+        // TODO Tune this
+        const HELD_JUMP_ACCELERATION: f32 = 130.0;
+        if !self.jump_timer.timer.finished() {
+            debug!("jump held, applying acceleration");
+            physics.velocity.y += HELD_JUMP_ACCELERATION;
+        }
+    }
+
+    pub fn jump_released(&mut self, physics: &mut PhysicsObject) {
+        debug!("jump_released called");
+        debug!(timerfinished = self.jump_timer.timer.finished());
+        if !self.jump_timer.timer.finished() && physics.velocity.y > 0.0 {
+            debug!("jump released, damping speed");
+            physics.velocity.y *= 0.65;
+        }
+    }
+
     pub fn perform_jump(
         &mut self,
         physics: &mut PhysicsObject,
         guy_transform: &mut Transform,
     ) {
-        const JUMP_SPEED: f32 = 600.0;
-        physics.velocity.y = JUMP_SPEED;
+        const INITIAL_JUMP_SPEED: f32 = 70.0;
+        physics.velocity.y = INITIAL_JUMP_SPEED;
         guy_transform.scale = GUY_JUMPING_SIZE;
         self.on_ground = None;
         self.coyote_timer.jump();
+        self.jump_timer.timer.reset();
     }
 
     pub fn set_on_ground(&mut self, y: f32) {

@@ -445,6 +445,7 @@ pub fn move_camera(
     }
 }
 
+// TODO why isn't this in guy.rs
 pub fn update_jump_state(
     time: Res<Time>,
     mut query: Query<
@@ -452,16 +453,24 @@ pub fn update_jump_state(
         With<Guy>,
     >,
 ) {
+    // debug!("update_jump_state called");
     for (mut physics, mut transform, mut jump_state) in query.iter_mut() {
         jump_state.coyote_timer.tick(time.delta());
+        jump_state.pre_jump_timer.timer.tick(time.delta());
+
+        // Should this be ticked unconditionally? Do we need jump_timer
+        // to encapsulate an Option<Timer> like coyote_timer?
+        if !jump_state.jump_timer.timer.finished() {
+            jump_state.jump_timer.timer.tick(time.delta());
+            if jump_state.pre_jump_timer.timer.just_finished() {
+                debug!("jump timer elapsed, stop applying upwards acceleration");
+            }
+        }
 
         // update PreJump and possibly enact triggered prejump on contact with ground
         let on_ground = jump_state.on_ground.is_some();
-        let timer = &mut jump_state.pre_jump_timer.timer;
-
-        timer.tick(time.delta());
-
-        if on_ground && !timer.finished() {
+        if on_ground && !jump_state.pre_jump_timer.timer.finished() {
+            debug!("contact with ground, pre jump triggered");
             jump_state.perform_jump(&mut physics, &mut transform);
         }
     }

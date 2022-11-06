@@ -281,8 +281,6 @@ pub fn spawn_level(
     portal_image_handle: Handle<Image>,
     level: &Level,
 ) {
-    debug!("spawning level");
-
     for (position @ IVec2 { x, y }, level_contents_type) in &level.0 {
         // -y because image coordinates treat down as positive y direction
         const TILE_WIDTH: i32 = 18;
@@ -290,14 +288,11 @@ pub fn spawn_level(
             Vec3::new((x * TILE_WIDTH) as f32, -1.0 * (y * TILE_WIDTH) as f32, 0.0);
         match level_contents_type {
             LevelContents::Player => {
-                debug!("spawning a player at {:?}", translation);
                 commands
                     .spawn_bundle(GuyBundle::with_translation(translation))
                     .insert(DrawAabb);
             }
             LevelContents::Tile => {
-                debug!("spawning a tile at {:?}", translation);
-
                 let tile_index = autotile_code_to_spritesheet_index(
                     classify_autotile(position, level),
                 );
@@ -310,7 +305,6 @@ pub fn spawn_level(
                     .insert(DrawAabb);
             }
             LevelContents::Portal(level_path) => {
-                debug!("spawning a portal at {:?}", translation);
                 commands.spawn_bundle(PortalBundle::new(
                     &portal_image_handle,
                     translation,

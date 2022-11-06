@@ -10,7 +10,10 @@ use bevy::render::texture::ImageSettings;
 use bevy::utils::Duration;
 use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
 use bevy_prototype_debug_lines::*;
-use input::{input_system, make_input_map, Action};
+use input::{
+    game_input_system, global_input_system, make_global_input_map, GameAction,
+    GlobalAction,
+};
 use iyes_loopless::{fixedtimestep::FixedTimestepStageLabel, prelude::*};
 use leafwing_input_manager::prelude::*;
 use platformer::{
@@ -34,16 +37,25 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(InputManagerPlugin::<Action>::default())
+        .add_plugin(InputManagerPlugin::<GlobalAction>::default())
+        .add_plugin(InputManagerPlugin::<GameAction>::default())
         .add_plugin(DebugLinesPlugin::default())
-        .insert_resource(ActionState::<Action>::default())
-        .insert_resource(make_input_map())
+        .insert_resource(ActionState::<GlobalAction>::default())
+        .insert_resource(make_global_input_map())
         .insert_resource(ClearColor(Color::rgb(0.7, 0.8, 0.9)))
         .add_fixed_timestep(Duration::from_secs_f32(TIME_STEP), "input_timestep")
-        // for now this needs to run in all states, to handle Start press
-        // we should factor it into an ingame and out of game system
-        // then we can add the ingame input handler as a component to guy
-        .add_fixed_timestep_system("input_timestep", 0, input_system.label("input"))
+        .add_fixed_timestep_system(
+            "input_timestep",
+            0,
+            global_input_system.label("global_input"),
+        )
+        .add_fixed_timestep_system(
+            "input_timestep",
+            0,
+            game_input_system
+                .run_in_state(AppState::InGame)
+                .label("game_input"),
+        )
         .add_fixed_timestep_after_stage(
             FixedTimestepStageLabel("input_timestep"),
             Duration::from_secs_f32(PHYSICS_TIME_STEP),

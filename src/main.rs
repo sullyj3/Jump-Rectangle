@@ -11,7 +11,8 @@ use bevy::utils::Duration;
 use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
 use bevy_prototype_debug_lines::*;
 use input::{
-    game_input_system, global_input_system, make_global_input_map, GlobalAction,
+    game_input_system, global_input_system, make_global_input_map, GameAction,
+    GlobalAction,
 };
 use iyes_loopless::{fixedtimestep::FixedTimestepStageLabel, prelude::*};
 use leafwing_input_manager::prelude::*;
@@ -37,6 +38,7 @@ fn main() {
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(InputManagerPlugin::<GlobalAction>::default())
+        .add_plugin(InputManagerPlugin::<GameAction>::default())
         .add_plugin(DebugLinesPlugin::default())
         .insert_resource(ActionState::<GlobalAction>::default())
         .insert_resource(make_global_input_map())

@@ -98,7 +98,6 @@ pub fn game_input_system(
     )>,
     mut commands: Commands,
 ) {
-    debug!("a");
     let (
         guy_entity,
         action_state,
@@ -108,7 +107,6 @@ pub fn game_input_system(
         mut jump_state,
         can_fly,
     ) = query.single_mut();
-    debug!("b");
 
     // TODO it might also be good to have separate systems for eg movement and jumping. Is
     // this idiomatic bevy? need to research
@@ -125,7 +123,6 @@ pub fn game_input_system(
             .map_or(0., |axis_data| axis_data.x());
         physics.velocity.x = direction_x * guy.h_speed;
     }
-    debug!("c");
 
     // debug things here
     if action_state.just_pressed(GameAction::Debug) {
@@ -140,7 +137,6 @@ pub fn game_input_system(
     }
 
     if action_state.just_pressed(GameAction::Jump) {
-        debug!("jump pressed");
         jump_state.try_jump(&mut physics, &mut transform);
     }
 }

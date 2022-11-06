@@ -11,41 +11,85 @@ use crate::physics_object::{Gravity, PhysicsObject};
 use crate::platformer::AppState;
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
-pub enum Action {
-    Move,
-    Jump,
+pub enum GlobalAction {
     Start,
     Select,
+}
+
+#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum GameAction {
+    Move,
+    Jump,
     Debug,
 }
 
-pub fn make_input_map() -> InputMap<Action> {
+pub fn make_global_input_map() -> InputMap<GlobalAction> {
     let mut input_map = InputMap::default();
     // keyboard
-    input_map.insert_multiple([
-        (KeyCode::Grave, Action::Debug),
-        (KeyCode::Space, Action::Jump),
-        (KeyCode::Return, Action::Start),
-    ]);
-    input_map.insert(VirtualDPad::arrow_keys(), Action::Move);
+    input_map.insert_multiple([(KeyCode::Return, GlobalAction::Start)]);
 
     // gamepad
     input_map.insert_multiple([
-        // For debugging
-        (GamepadButtonType::North, Action::Debug),
-        (GamepadButtonType::South, Action::Jump),
-        (GamepadButtonType::Start, Action::Start),
-        (GamepadButtonType::Select, Action::Select),
+        (GamepadButtonType::Start, GlobalAction::Start),
+        (GamepadButtonType::Select, GlobalAction::Select),
     ]);
-    input_map.insert(VirtualDPad::dpad(), Action::Move);
-    input_map.insert(DualAxis::left_stick(), Action::Move);
     input_map
 }
 
-pub fn input_system(
-    action_state: Res<ActionState<Action>>,
+pub fn make_game_input_map() -> InputMap<GameAction> {
+    let mut input_map = InputMap::default();
+    // keyboard
+    input_map.insert_multiple([
+        (KeyCode::Grave, GameAction::Debug),
+        (KeyCode::Space, GameAction::Jump),
+    ]);
+    input_map.insert(VirtualDPad::arrow_keys(), GameAction::Move);
+
+    // gamepad
+    input_map.insert_multiple([
+        (GamepadButtonType::North, GameAction::Debug),
+        (GamepadButtonType::South, GameAction::Jump),
+    ]);
+    input_map.insert(VirtualDPad::dpad(), GameAction::Move);
+    input_map.insert(DualAxis::left_stick(), GameAction::Move);
+    input_map
+}
+
+pub fn global_input_system(
+    global_action_state: Res<ActionState<GlobalAction>>,
+    mut commands: Commands,
+    state: Res<CurrentState<AppState>>,
+    mut exit: EventWriter<AppExit>,
+) {
+    // Quit if start+select
+    if global_action_state.pressed(GlobalAction::Select)
+        && global_action_state.pressed(GlobalAction::Start)
+    {
+        exit.send(AppExit);
+    }
+
+    // Start button state transitions
+    if global_action_state.just_pressed(GlobalAction::Start) {
+        use AppState::*;
+        match state.0 {
+            Loading => (),
+            MainMenu => {
+                // I don't really love this approach of needing to insert a LoadingLevel
+                // when I switch to the loading state
+                // not sure if there's a better way to communicate between states.
+                commands.insert_resource(LoadingLevel::Overworld);
+                commands.insert_resource(NextState(AppState::Loading))
+            }
+            InGame => commands.insert_resource(NextState(AppState::Paused)),
+            Paused => commands.insert_resource(NextState(AppState::InGame)),
+        };
+    }
+}
+
+pub fn game_input_system(
     mut query: Query<(
         Entity,
+        &ActionState<GameAction>,
         &Guy,
         &mut PhysicsObject,
         &mut Transform,
@@ -53,42 +97,18 @@ pub fn input_system(
         Option<&CanFly>,
     )>,
     mut commands: Commands,
-    state: Res<CurrentState<AppState>>,
-    mut exit: EventWriter<AppExit>,
 ) {
-    // Quit if start+select
-    if action_state.pressed(Action::Select) && action_state.pressed(Action::Start) {
-        exit.send(AppExit);
-    }
-
-    {
-        use AppState::*;
-        // Start button state transitions
-        if action_state.just_pressed(Action::Start) {
-            match state.0 {
-                Loading => (),
-                MainMenu => {
-                    // I don't really love this approach of needing to insert a LoadingLevel
-                    // when I switch to the loading state
-                    // not sure if there's a better way to communicate between states.
-                    commands.insert_resource(LoadingLevel::Overworld);
-                    commands.insert_resource(NextState(AppState::Loading))
-                }
-                InGame => commands.insert_resource(NextState(AppState::Paused)),
-                Paused => commands.insert_resource(NextState(AppState::InGame)),
-            };
-            return;
-        }
-
-        // Exit if we're not in game, and therefore shouldn't handle in game input
-        // TODO: split into 2 systems, one for the character and
-        // one for the whole game. this will allow us to conditionally run ingame input system only
-        // during AppState::InGame, eliminating this check
-        let InGame = state.0 else { return };
-    }
-
-    let (guy_entity, guy, mut physics, mut transform, mut jump_state, can_fly) =
-        query.single_mut();
+    debug!("a");
+    let (
+        guy_entity,
+        action_state,
+        guy,
+        mut physics,
+        mut transform,
+        mut jump_state,
+        can_fly,
+    ) = query.single_mut();
+    debug!("b");
 
     // TODO it might also be good to have separate systems for eg movement and jumping. Is
     // this idiomatic bevy? need to research
@@ -96,18 +116,19 @@ pub fn input_system(
     // Movement
     if can_fly.is_some() {
         let direction = action_state
-            .clamped_axis_pair(Action::Move)
+            .clamped_axis_pair(GameAction::Move)
             .map_or(Vec2::ZERO, |axis_data| axis_data.xy());
         physics.velocity = direction * guy.h_speed;
     } else {
         let direction_x = action_state
-            .clamped_axis_pair(Action::Move)
+            .clamped_axis_pair(GameAction::Move)
             .map_or(0., |axis_data| axis_data.x());
         physics.velocity.x = direction_x * guy.h_speed;
     }
+    debug!("c");
 
     // debug things here
-    if action_state.just_pressed(Action::Debug) {
+    if action_state.just_pressed(GameAction::Debug) {
         // toggle flying
         if can_fly.is_some() {
             commands.entity(guy_entity).remove::<CanFly>();
@@ -118,7 +139,8 @@ pub fn input_system(
         }
     }
 
-    if action_state.just_pressed(Action::Jump) {
+    if action_state.just_pressed(GameAction::Jump) {
+        debug!("jump pressed");
         jump_state.try_jump(&mut physics, &mut transform);
     }
 }

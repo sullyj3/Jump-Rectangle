@@ -1,7 +1,9 @@
+use crate::input::{make_game_input_map, GameAction};
 use crate::physics_object::{Gravity, PhysicsObject};
 use crate::platformer::Aabb;
 use bevy::prelude::*;
 use bevy::utils::Duration;
+use leafwing_input_manager::prelude::*;
 
 #[derive(Component, Debug)]
 pub struct PreJumpTimer {
@@ -143,6 +145,8 @@ pub struct GuyBundle {
     physics: PhysicsObject,
     jump_state: JumpState,
     gravity: Gravity,
+    #[bundle]
+    input_manager: InputManagerBundle<GameAction>,
 }
 
 pub const GUY_SIZE: Vec2 = Vec2::new(16.0, 16.0);
@@ -167,6 +171,10 @@ impl Default for GuyBundle {
             physics: PhysicsObject::default(),
             jump_state: JumpState::default(),
             gravity: Gravity::default(),
+            input_manager: InputManagerBundle {
+                action_state: ActionState::default(),
+                input_map: make_game_input_map(),
+            },
         }
     }
 }

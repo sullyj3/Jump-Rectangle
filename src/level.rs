@@ -1,9 +1,9 @@
-use std::{collections::HashMap, io::Cursor, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::platformer::{Aabb, DrawAabb};
 use bevy::{prelude::*, render::render_resource::TextureFormat};
 
-use image::{DynamicImage, ImageBuffer, ImageFormat, Rgba, RgbaImage};
+use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 
 pub enum LevelContents {
     Player,
@@ -20,6 +20,7 @@ pub enum LevelParseError {
 }
 
 // Specifies a level to be either fetched or generated
+#[derive(Resource)]
 pub enum LoadingLevel {
     Path(PathBuf),
     // needs to be its own variant because menu is dynamically generated

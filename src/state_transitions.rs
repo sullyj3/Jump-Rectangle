@@ -2,7 +2,7 @@
 use crate::guy::Guy;
 use crate::level::*;
 use crate::platformer::{spawn_level, AppState, PauseMessage};
-use bevy::ecs::query::WorldQuery;
+use bevy::ecs::query::ReadOnlyWorldQuery;
 use bevy::prelude::*;
 use iyes_loopless::state::NextState;
 
@@ -22,7 +22,7 @@ pub fn exit_paused(
     pm_visibility.is_visible = false;
 }
 
-pub fn despawn_where<F: WorldQuery>(
+pub fn despawn_where<F: ReadOnlyWorldQuery>(
     to_despawn: Query<Entity, F>,
     mut commands: Commands,
 ) {
@@ -72,7 +72,10 @@ pub fn despawn_level_contents(
 //     This should mean wait_level_load is never called.
 //
 // This approach feels insanely brittle
+#[derive(Resource)]
 pub struct LoadedLevel(Level);
+
+#[derive(Resource)]
 pub struct LoadingLevelImageHandle(Handle<Image>);
 
 pub fn enter_loading(
@@ -129,7 +132,7 @@ pub fn exit_loading(
     let tile_texture_handle = asset_server.load("tiles_packed.png");
     let portal_image_handle: Handle<Image> = asset_server.load("portal.png");
     let tile_texture_atlas =
-        TextureAtlas::from_grid(tile_texture_handle, Vec2::new(18.0, 18.0), 20, 9);
+        TextureAtlas::from_grid(tile_texture_handle, Vec2::new(18.0, 18.0), 20, 9, None, None);
     let tile_texture_atlas_handle: Handle<TextureAtlas> =
         texture_atlases.add(tile_texture_atlas);
 

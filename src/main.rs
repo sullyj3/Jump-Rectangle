@@ -5,8 +5,7 @@ mod physics_object;
 mod platformer;
 mod state_transitions;
 
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::render::texture::ImageSettings;
+use bevy::log::LogPlugin;
 use bevy::utils::Duration;
 use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
 use bevy_prototype_debug_lines::*;
@@ -24,21 +23,25 @@ use state_transitions::*;
 
 fn main() {
     App::new()
-        .insert_resource(bevy::log::LogSettings {
-            level: bevy::log::Level::DEBUG,
-            ..Default::default()
-        })
-        .insert_resource(ImageSettings::default_nearest())
-        .insert_resource(WindowDescriptor {
-            width: 640.0,
-            height: 360.0,
-            // width: 960.0,
-            // height: 540.0,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins
+            .set(WindowPlugin {
+                window: WindowDescriptor {
+                    width: 640.0,
+                    height: 360.0,
+                    // width: 960.0,
+                    // height: 540.0,
+                    ..default()
+                },
+                ..default()
+            }
+            )
+            .set(LogPlugin {
+                level: bevy::log::Level::DEBUG,
+                ..default()
+            })
+            .set(ImagePlugin::default_nearest())
+        )
         .add_plugin(LogDiagnosticsPlugin::default())
-        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(InputManagerPlugin::<GlobalAction>::default())
         .add_plugin(InputManagerPlugin::<GameAction>::default())
         .add_plugin(DebugLinesPlugin::default())

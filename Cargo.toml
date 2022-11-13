@@ -14,11 +14,13 @@ opt-level = 3
 
 [dependencies]
 # remember to disable "dynamic" feature before release
-bevy = { version = "0.8", features = ["dynamic"] }
-leafwing-input-manager = "0.5.2"
+bevy = { version = "0.9", features = ["dynamic"] }
+leafwing-input-manager = "0.7"
 glob = "0.3.0"
-iyes_loopless = { git = "https://github.com/IyesGames/iyes_loopless.git" }
-bevy_prototype_debug_lines = "0.8"
+iyes_loopless = "0.9"
+bevy_prototype_debug_lines = "0.9"
+
+# todo get rid of this
 glam_vector_components = { git = "https://github.com/sullyj3/glam_vector_components" }
 image = "0.24.4"
 rand = "0.8.5"

@@ -2,13 +2,9 @@
 
 use bevy::{
     prelude::*,
-    sprite::{
-        collide_aabb::{collide, Collision},
-        Rect,
-    },
-    // input::keyboard::KeyboardInput,
-    // input::gamepad::*,
+    sprite::collide_aabb::{collide, Collision},
 };
+use bevy::math::Rect;
 use bevy_prototype_debug_lines::*;
 use iyes_loopless::state::NextState;
 // use rand::prelude::*;
@@ -147,7 +143,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Add the game's entities to our world
 
     // cameras
-    commands.spawn_bundle(Camera2dBundle {
+    commands.spawn(Camera2dBundle {
         projection: OrthographicProjection {
             // scale: 0.35,
             scale: 1.0,
@@ -157,7 +153,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
     // Pause message
     commands
-        .spawn_bundle(
+        .spawn(
             TextBundle::from_section(
                 "PAUSED",
                 TextStyle {
@@ -289,7 +285,7 @@ pub fn spawn_level(
         match level_contents_type {
             LevelContents::Player => {
                 commands
-                    .spawn_bundle(GuyBundle::with_translation(translation))
+                    .spawn(GuyBundle::with_translation(translation))
                     .insert(DrawAabb);
             }
             LevelContents::Tile => {
@@ -297,7 +293,7 @@ pub fn spawn_level(
                     classify_autotile(position, level),
                 );
                 commands
-                    .spawn_bundle(TileBundle::new(
+                    .spawn(TileBundle::new(
                         tile_index,
                         translation,
                         &tile_texture_atlas_handle,
@@ -305,7 +301,7 @@ pub fn spawn_level(
                     .insert(DrawAabb);
             }
             LevelContents::Portal(level_path) => {
-                commands.spawn_bundle(PortalBundle::new(
+                commands.spawn(PortalBundle::new(
                     &portal_image_handle,
                     translation,
                     level_path.to_path_buf(),
@@ -334,7 +330,7 @@ pub fn physics_system(
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Resource)]
 pub enum AppState {
     MainMenu,
     // Invariant: We can only transition to AppState::InGame if we have inserted a LoadedLevel

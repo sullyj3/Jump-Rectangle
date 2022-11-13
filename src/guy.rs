@@ -22,7 +22,7 @@ impl PreJumpTimer {
 impl Default for PreJumpTimer {
     fn default() -> Self {
         PreJumpTimer {
-            timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, false),
+            timer: Timer::from_seconds(Self::PRE_JUMP_TOLERANCE, TimerMode::Once),
         }
     }
 }
@@ -65,7 +65,7 @@ impl CoyoteTimer {
 impl Default for CoyoteTimer {
     fn default() -> Self {
         Self {
-            timer: Some(Timer::from_seconds(Self::COYOTE_TOLERANCE, false)),
+            timer: Some(Timer::from_seconds(Self::COYOTE_TOLERANCE, TimerMode::Once)),
         }
     }
 }
@@ -83,7 +83,7 @@ impl JumpTimer {
 impl Default for JumpTimer {
     fn default() -> Self {
         Self {
-            timer: Timer::from_seconds(Self::JUMP_MAX_HOLD_DURATION, false),
+            timer: Timer::from_seconds(Self::JUMP_MAX_HOLD_DURATION, TimerMode::Once),
         }
     }
 }

@@ -82,11 +82,11 @@ fn main() {
                 .after("physics"),
         )
         .add_fixed_timestep_system(
-            "input_timestep",
+            "physics_timestep",
             0,
             update_jump_state
                 .run_in_state(AppState::InGame)
-                // .after("guy_collision")
+                .after("guy_collision")
                 .label("update_jump_state"),
         )
         .add_system(

@@ -138,9 +138,5 @@ pub fn game_input_system(
 
     if action_state.just_pressed(GameAction::Jump) {
         jump_state.try_jump(&mut physics, &mut transform);
-    } else if action_state.pressed(GameAction::Jump) {
-        jump_state.jump_held(&mut physics);
-    } else if action_state.just_released(GameAction::Jump) {
-        jump_state.jump_released(&mut physics);
     }
 }
